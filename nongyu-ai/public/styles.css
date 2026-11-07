@@ -1,0 +1,882 @@
+/* ============================================================
+           这里是 CSS，负责“网页长什么样”。
+           你可以把它理解成房子的装修：颜色、大小、间距、圆角。
+           每一段前面的中文注释会说明它管的是哪一部分。
+           ============================================================ */
+
+        /* 冒号前面的 --xxx 是“颜色变量”。
+           把常用颜色起一个名字，后面就能反复使用，想换颜色时只改这里。 */
+        :root {
+            --red:#a63c2f;
+            --deep-green: #173f2a;
+            --main-green: #2f713f;
+            --light-green: #dfeccf;
+            --cream: #f7f7ef;
+            --card: #ffffff;
+            --ink: #1f2d24;
+            --muted: #6e7c72;
+            --line: #dfe6dc;
+            --gold: #f4c95d;
+            --soft-gold: #fff4cf;
+            --danger: #a63c2f;
+        }
+
+        /* “*”代表页面上所有元素。
+           这里统一去掉浏览器默认的外边距，并让宽高计算更直观。 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* hidden 是 HTML 的隐藏属性。加 !important 可以确保它一定生效。 */
+        [hidden] {
+            display: none !important;
+        }
+
+        /* body 是整个网页的主体，这里设置字体、底色和基础文字颜色。 */
+        body {
+            min-height: 100vh;
+            color: var(--ink);
+            font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+            background:
+                radial-gradient(circle at 8% 10%, rgba(170, 203, 113, 0.26), transparent 28rem),
+                radial-gradient(circle at 92% 40%, rgba(244, 201, 93, 0.13), transparent 24rem),
+                var(--cream);
+            line-height: 1.6;
+        }
+
+        /* 按钮和输入框默认不会自动继承 body 的字体，所以这里单独设置。 */
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        /* 页面最外层容器：限制最大宽度，并让内容在屏幕中间。 */
+        .page {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 24px 0 40px;
+        }
+
+        /* ============================================================
+           顶部介绍区
+           ============================================================ */
+
+        /* 顶部深绿色大卡片。linear-gradient 是渐变色。 */
+        .hero {
+            position: relative;
+            overflow: hidden;
+            padding: 28px 34px 34px;
+            color: #ffffff;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.06), transparent 45%),
+                linear-gradient(120deg, var(--deep-green), #2d6839 62%, #617f34);
+            border-radius: 30px;
+            box-shadow: 0 24px 60px rgba(30, 64, 41, 0.18);
+        }
+
+        /* 这两个圆形只是装饰，让顶部看起来更有层次。
+           position: absolute 让它们可以自由地放在大卡片内部。 */
+        .hero::before,
+        .hero::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero::before {
+            width: 330px;
+            height: 330px;
+            right: -110px;
+            top: -160px;
+            background: rgba(245, 202, 98, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+
+        .hero::after {
+            width: 180px;
+            height: 180px;
+            right: 23%;
+            bottom: -115px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        /* 顶部第一行：左边是品牌，右边是赛道标签。 */
+        .hero-top {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 34px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+        }
+
+        /* “农”字小图标。 */
+        .brand-mark {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            place-items: center;
+            color: var(--deep-green);
+            background: var(--gold);
+            border-radius: 50% 50% 48% 52% / 45% 55% 45% 55%;
+            font-size: 17px;
+            font-weight: 900;
+        }
+
+        /* 半透明小标签。 */
+        .badge {
+            padding: 7px 13px;
+            color: #f7f8ea;
+            background: rgba(255, 255, 255, 0.11);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 999px;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+        }
+
+        /* 顶部介绍区左右两栏。1.45fr 表示左栏占更多空间。 */
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(250px, 0.55fr);
+            align-items: end;
+            gap: 44px;
+        }
+
+        .eyebrow {
+            margin-bottom: 12px;
+            color: #d9e7bd;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+        }
+
+        /* clamp(最小值, 随屏幕变化, 最大值) 可以让标题自动缩放。 */
+        h1 {
+            max-width: 760px;
+            font-size: clamp(38px, 5.4vw, 68px);
+            line-height: 1.08;
+            letter-spacing: -0.045em;
+        }
+
+        /* h1 里的 span 只给第二行换一种更醒目的颜色。 */
+        h1 span {
+            color: #f4d880;
+        }
+
+        .hero-lead {
+            max-width: 680px;
+            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.77);
+            font-size: 15px;
+            line-height: 1.9;
+        }
+
+        /* 三个小卖点横着排列。 */
+        .hero-points {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 18px;
+            margin-top: 23px;
+            list-style: none;
+            color: #eef4e7;
+            font-size: 13px;
+        }
+
+        .hero-points li::before {
+            content: "✓";
+            display: inline-grid;
+            width: 18px;
+            height: 18px;
+            margin-right: 7px;
+            place-items: center;
+            color: var(--deep-green);
+            background: #e6d48f;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        /* 顶部右侧的三个编号步骤。 */
+        .hero-steps {
+            display: grid;
+            gap: 10px;
+        }
+
+        .step-card {
+            display: grid;
+            grid-template-columns: 36px 1fr;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            border-radius: 14px;
+            backdrop-filter: blur(8px);
+        }
+
+        .step-number {
+            color: #f6d97d;
+            font-family: Georgia, serif;
+            font-size: 23px;
+        }
+
+        .step-card strong {
+            display: block;
+            font-size: 13px;
+        }
+
+        .step-card small {
+            display: block;
+            margin-top: 1px;
+            color: rgba(255, 255, 255, 0.57);
+            font-size: 11px;
+        }
+
+        /* ============================================================
+           主体工作区：左边表单，右边结果
+           ============================================================ */
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 370px minmax(0, 1fr);
+            align-items: start;
+            gap: 22px;
+            margin-top: 22px;
+        }
+
+        /* 白色面板是表单和结果共用的外观。 */
+        .panel {
+            background: rgba(255, 255, 255, 0.93);
+            border: 1px solid rgba(35, 80, 47, 0.1);
+            border-radius: 22px;
+            box-shadow: 0 14px 35px rgba(31, 64, 43, 0.07);
+        }
+
+        .form-panel {
+            padding: 25px;
+        }
+
+        /* 面板小标题，例如“01 / 输入信息”。 */
+        .section-kicker {
+            color: var(--main-green);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+        }
+
+        .panel-heading {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 23px;
+        }
+
+        .panel-heading h2 {
+            margin-top: 5px;
+            font-size: 22px;
+            line-height: 1.3;
+            letter-spacing: -0.03em;
+        }
+
+        /* 小的次要按钮，例如“填入示例”。 */
+        .text-button {
+            flex: none;
+            padding: 7px 10px;
+            color: var(--main-green);
+            background: #edf5e9;
+            border: 1px solid #dbe9d4;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .text-button:hover {
+            background: #e1eeda;
+            transform: translateY(-1px);
+        }
+
+        /* 每一个输入项的外层。 */
+        .form-item {
+            margin-bottom: 16px;
+        }
+
+        /* 输入框上方的文字。 */
+        .form-item label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 7px;
+            color: #33483a;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .required {
+            color: #8ba06f;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* 输入框和下拉框共用的样式。 */
+        .form-item input,
+        .form-item select {
+            width: 100%;
+            min-height: 45px;
+            padding: 10px 13px;
+            color: var(--ink);
+            background: #fbfcf8;
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            outline: none;
+            font-size: 14px;
+            transition: 0.2s ease;
+        }
+
+        /* 鼠标点进输入框时会变绿，让用户知道现在正在输入。 */
+        .form-item input:focus,
+        .form-item select:focus {
+            background: #ffffff;
+            border-color: #8bb26d;
+            box-shadow: 0 0 0 4px rgba(120, 162, 92, 0.13);
+        }
+
+        .form-item input::placeholder {
+            color: #a9b2aa;
+        }
+
+        .form-hint {
+            margin-top: 6px;
+            color: #8a968d;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        /* 最主要的“生成”按钮。 */
+        .generate-button {
+            display: flex;
+            width: 100%;
+            min-height: 52px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 22px;
+            padding: 12px 18px;
+            color: #ffffff;
+            background: linear-gradient(135deg, #2e713f, #225a34);
+            border: 0;
+            border-radius: 13px;
+            box-shadow: 0 12px 25px rgba(42, 105, 57, 0.22);
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .generate-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 30px rgba(42, 105, 57, 0.28);
+        }
+
+        .generate-button:active {
+            transform: translateY(0);
+        }
+
+        .generate-button:disabled {
+            opacity: 0.72;
+            cursor: wait;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 按钮下方的小提示。 */
+        .privacy-note {
+            display: flex;
+            gap: 7px;
+            margin-top: 13px;
+            color: #8b978e;
+            font-size: 10px;
+            line-height: 1.6;
+        }
+
+        .connection-note {
+            margin-top: 5px;
+            align-items: center;
+        }
+
+        .connection-dot {
+            width: 7px;
+            height: 7px;
+            flex: none;
+            background: #c89f3f;
+            border-radius: 50%;
+            box-shadow: 0 0 0 3px rgba(200, 159, 63, 0.12);
+        }
+
+        .connection-note[data-state="online"] {
+            color: #58734f;
+        }
+
+        .connection-note[data-state="online"] .connection-dot {
+            background: #4f8b55;
+            box-shadow: 0 0 0 3px rgba(79, 139, 85, 0.13);
+        }
+
+        .connection-note[data-state="offline"] {
+            color: #8f4c44;
+        }
+
+        .connection-note[data-state="offline"] .connection-dot {
+            background: var(--danger);
+            box-shadow: 0 0 0 3px rgba(166, 60, 47, 0.11);
+        }
+
+        /* ============================================================
+           右侧结果区
+           ============================================================ */
+
+        .output-column {
+            display: grid;
+            gap: 18px;
+        }
+
+        .results-panel {
+            padding: 25px;
+        }
+
+        .results-heading {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .results-heading h2 {
+            margin-top: 5px;
+            font-size: 23px;
+            line-height: 1.3;
+            letter-spacing: -0.03em;
+        }
+
+        .results-heading p {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* “复制全部”按钮。 */
+        .secondary-button {
+            flex: none;
+            padding: 9px 13px;
+            color: var(--main-green);
+            background: #ffffff;
+            border: 1px solid #cddbc7;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .secondary-button:hover:not(:disabled) {
+            background: #f1f7ed;
+            border-color: #a9c69c;
+        }
+
+        .secondary-button:disabled {
+            color: #aab2ab;
+            background: #f5f6f3;
+            border-color: #e6e9e4;
+            cursor: not-allowed;
+        }
+
+        /* 还没生成时显示的空白状态。 */
+        .empty-state {
+            display: grid;
+            min-height: 290px;
+            padding: 30px;
+            place-items: center;
+            text-align: center;
+            background:
+                linear-gradient(#fbfcf8, #fbfcf8) padding-box,
+                repeating-linear-gradient(
+                    135deg,
+                    #dfe9d9 0,
+                    #dfe9d9 8px,
+                    transparent 8px,
+                    transparent 16px
+                ) border-box;
+            border: 1px solid transparent;
+            border-radius: 16px;
+        }
+
+        .empty-state-inner {
+            max-width: 370px;
+        }
+
+        .empty-icon {
+            display: grid;
+            width: 66px;
+            height: 66px;
+            margin: 0 auto 15px;
+            place-items: center;
+            background: #eaf3e4;
+            border-radius: 22px;
+            font-size: 30px;
+            transform: rotate(-4deg);
+        }
+
+        .empty-state h3 {
+            font-size: 17px;
+        }
+
+        .empty-state p {
+            margin-top: 7px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        /* 生成后显示的三张文案卡片。 */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 13px;
+        }
+
+        .copy-card {
+            display: flex;
+            min-height: 260px;
+            flex-direction: column;
+            padding: 17px;
+            background: #fbfcf7;
+            border: 1px solid #e1e8dc;
+            border-radius: 15px;
+            animation: card-in 0.35s ease both;
+        }
+
+        /* 三张卡片依次出现，会稍微错开一点点时间。 */
+        .copy-card:nth-child(2) {
+            animation-delay: 0.06s;
+        }
+
+        .copy-card:nth-child(3) {
+            animation-delay: 0.12s;
+        }
+
+        @keyframes card-in {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .copy-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e7ece3;
+        }
+
+        .version-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--main-green);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+        }
+
+        .version-tag::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            background: #7ea15f;
+            border-radius: 50%;
+        }
+
+        /* 每条文案右上角的复制按钮。 */
+        .copy-button {
+            padding: 5px 8px;
+            color: #607066;
+            background: #ffffff;
+            border: 1px solid #dee5da;
+            border-radius: 7px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .copy-button:hover {
+            color: var(--main-green);
+            border-color: #a8c49a;
+        }
+
+        .copy-button.copied {
+            color: #ffffff;
+            background: var(--main-green);
+            border-color: var(--main-green);
+        }
+
+        /* pre-wrap 会保留文案里的换行，电商文案就能按设计分段。 */
+        .copy-text {
+            flex: 1;
+            padding-top: 14px;
+            color: #34483a;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            font-size: 13px;
+            line-height: 1.9;
+        }
+
+        /* ============================================================
+           传播效果评估区
+           ============================================================ */
+
+        .score-panel {
+            padding: 22px 25px;
+        }
+
+        .score-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .score-number {
+            display: flex;
+            width: 70px;
+            height: 70px;
+            flex: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--deep-green);
+            background: var(--soft-gold);
+            border: 1px solid #efd996;
+            border-radius: 50%;
+            font-size: 25px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .score-number small {
+            margin-top: 4px;
+            color: #84713e;
+            font-size: 9px;
+            font-weight: 600;
+        }
+
+        .score-top h2 {
+            font-size: 18px;
+        }
+
+        .score-top p {
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .score-list {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .score-item {
+            padding: 13px;
+            background: #f8faf5;
+            border: 1px solid #e7ece2;
+            border-radius: 12px;
+        }
+
+        .score-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: #526456;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .score-label strong {
+            color: var(--main-green);
+            font-size: 13px;
+        }
+
+        /* 灰色进度条。 */
+        .score-track {
+            height: 6px;
+            margin-top: 9px;
+            overflow: hidden;
+            background: #e5ebe1;
+            border-radius: 999px;
+        }
+
+        /* 绿色进度条内部的彩色部分，宽度会由 JavaScript 改变。 */
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #91b36c, #397b49);
+            border-radius: inherit;
+            transition: width 0.5s ease;
+        }
+
+        .score-note {
+            margin-top: 7px;
+            color: #89938b;
+            font-size: 9px;
+            line-height: 1.5;
+        }
+
+        /* 评估下方的一条改进建议。 */
+        .score-advice {
+            display: flex;
+            gap: 9px;
+            margin-top: 13px;
+            padding: 11px 13px;
+            color: #5e6d61;
+            background: #f7f4e8;
+            border-radius: 10px;
+            font-size: 10px;
+            line-height: 1.7;
+        }
+
+        /* 底部说明。 */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 22px 5px 0;
+            color: #8b978e;
+            font-size: 10px;
+        }
+
+        /* 用户复制文案后出现的轻提示。 */
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            z-index: 20;
+            padding: 10px 16px;
+            color: #ffffff;
+            background: rgba(23, 63, 42, 0.94);
+            border-radius: 999px;
+            box-shadow: 0 10px 28px rgba(23, 63, 42, 0.2);
+            font-size: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, 10px);
+            transition: 0.25s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        /* ============================================================
+           手机和较窄屏幕的适配
+           ============================================================ */
+
+        @media (max-width: 980px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 26px;
+            }
+
+            .hero-steps {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .page {
+                width: min(100% - 20px, 1180px);
+                padding-top: 10px;
+            }
+
+            .hero {
+                padding: 22px 20px 25px;
+                border-radius: 22px;
+            }
+
+            .hero-top {
+                align-items: flex-start;
+                margin-bottom: 28px;
+            }
+
+            .badge {
+                text-align: right;
+            }
+
+            .hero-steps,
+            .results-grid,
+            .score-list {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-steps {
+                display: none;
+            }
+
+            .hero-lead {
+                font-size: 14px;
+            }
+
+            .form-panel,
+            .results-panel,
+            .score-panel {
+                padding: 20px;
+                border-radius: 18px;
+            }
+
+            .results-heading {
+                flex-direction: column;
+            }
+
+            .secondary-button {
+                width: 100%;
+            }
+
+            .copy-card {
+                min-height: 220px;
+            }
+
+            .footer {
+                flex-direction: column;
+                gap: 4px;
+            }
+        }

@@ -1,0 +1,15 @@
+{
+  "name": "nongyu-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "农语 AI 农产品宣传文案生成网站",
+  "type": "module",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "test": "node --test"
+  }
+}

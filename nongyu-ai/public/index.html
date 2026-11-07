@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<!-- 上面这一行告诉浏览器：这是一个 HTML5 网页。每次写 HTML 都可以先保留它。 -->
+<html lang="zh-CN">
+<!-- lang="zh-CN" 表示网页的主要语言是简体中文，读屏软件会更准确地朗读。 -->
+
+<head>
+    <!-- head 里放“网页的设置”，这些内容通常不会直接显示在页面上。 -->
+    <meta charset="UTF-8">
+    <!-- UTF-8 用来保证中文可以正常显示，不会变成乱码。 -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 让页面在手机和电脑上都能按屏幕宽度自动调整。 -->
+
+    <meta
+        name="description"
+        content="农语 AI 根据产品名称、产地和特色，生成短视频、电商、公众号和海报宣传文案。"
+    >
+    <meta name="theme-color" content="#173f2a">
+    <title>农语AI｜农产品宣传词生成工具</title>
+    <!-- title 是浏览器标签页上显示的网页名称。 -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+    <!-- 整个页面放在 .page 容器中，方便统一控制最大宽度。 -->
+    <div class="page">
+
+        <!-- ========================================================
+             第 1 部分：首页介绍区
+             对应作业里的“项目简介、解决什么农业传播痛点”
+             ======================================================== -->
+        <header class="hero">
+            <div class="hero-top">
+                <div class="brand">
+                    <span class="brand-mark" aria-hidden="true">农</span>
+                    <span>农语 AI</span>
+                </div>
+                <span class="badge">赛道三 · 前后端可部署版本</span>
+            </div>
+
+            <div class="hero-content">
+                <div>
+                    <p class="eyebrow">农产品智能宣传词生成工具</p>
+                    <h1>让好农产品，<br><span>被更多人看见。</span></h1>
+                    <p class="hero-lead">
+                        不会写短视频、电商和公众号文案？只需要填好产品名称、产地和特色，
+                        一次生成 3 个不同版本，选择最合适的一条，直接复制使用。
+                    </p>
+
+                    <!-- 这三个小卖点直接回应作业中的“痛点”。 -->
+                    <ul class="hero-points">
+                        <li>4 种常见宣传场景</li>
+                        <li>每次生成 3 个版本</li>
+                        <li>无需注册，一键复制</li>
+                    </ul>
+                </div>
+
+                <!-- 右侧用三张编号卡片说明使用步骤。 -->
+                <div class="hero-steps" aria-label="使用步骤">
+                    <div class="step-card">
+                        <span class="step-number">01</span>
+                        <div>
+                            <strong>填写产品信息</strong>
+                            <small>名称、产地、核心特色</small>
+                        </div>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-number">02</span>
+                        <div>
+                            <strong>选择宣传场景</strong>
+                            <small>短视频、电商、推文或海报</small>
+                        </div>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-number">03</span>
+                        <div>
+                            <strong>生成并复制</strong>
+                            <small>挑一条最有感觉的文案</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ========================================================
+             第 2 部分：输入表单 + 结果输出
+             ======================================================== -->
+        <main class="workspace">
+
+            <!-- 左侧输入表单。form 标签可以把所有输入项打包提交。 -->
+            <aside class="panel form-panel">
+                <div class="panel-heading">
+                    <div>
+                        <span class="section-kicker">01 / INPUT</span>
+                        <h2>输入产品信息</h2>
+                    </div>
+                    <!-- type="button" 表示它只是普通按钮，不会提交表单。 -->
+                    <button class="text-button" id="exampleButton" type="button">填入示例</button>
+                </div>
+
+                <!-- id="copyForm" 让下面的 JavaScript 可以找到这个表单。 -->
+                <form id="copyForm">
+                    <div class="form-item">
+                        <label for="productName">
+                            农产品名称
+                            <span class="required">必填</span>
+                        </label>
+                        <input
+                            id="productName"
+                            name="productName"
+                            type="text"
+                            maxlength="20"
+                            placeholder="例如：烟台苹果"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-item">
+                        <label for="place">
+                            产地
+                            <span class="required">必填</span>
+                        </label>
+                        <input
+                            id="place"
+                            name="place"
+                            type="text"
+                            maxlength="24"
+                            placeholder="例如：山东烟台"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-item">
+                        <label for="features">
+                            产品特色
+                            <span class="required">必填</span>
+                        </label>
+                        <input
+                            id="features"
+                            name="features"
+                            type="text"
+                            maxlength="60"
+                            placeholder="例如：脆甜多汁、生态种植"
+                            autocomplete="off"
+                            required
+                        >
+                        <p class="form-hint">用“、”或逗号隔开 2—3 个卖点，生成效果会更自然。</p>
+                    </div>
+
+                    <div class="form-item">
+                        <label for="style">
+                            文案风格
+                            <span class="required">选择 1 种</span>
+                        </label>
+                        <select id="style" name="style">
+                            <option value="short">🎬 短视频口播</option>
+                            <option value="shop">🛒 电商商品详情</option>
+                            <option value="post">📖 公众号推文</option>
+                            <option value="poster">📣 海报标语</option>
+                        </select>
+                    </div>
+
+                    <!-- 点击后由 JavaScript 接管生成工作。 -->
+                    <button class="generate-button" id="generateButton" type="submit">
+                        <span aria-hidden="true">✨</span>
+                        生成 3 个宣传版本
+                    </button>
+                </form>
+
+                <p class="privacy-note">
+                    <span aria-hidden="true">🔒</span>
+                    <span>输入内容仅用于本次生成，本站不写入数据库，也不保存文案记录。</span>
+                </p>
+                <p class="privacy-note connection-note" id="connectionState" data-state="checking">
+                    <span class="connection-dot" aria-hidden="true"></span>
+                    <span class="connection-text">正在连接本站后端…</span>
+                </p>
+            </aside>
+
+            <!-- 右侧输出列。 -->
+            <section class="output-column" aria-label="文案生成结果">
+
+                <div class="panel results-panel">
+                    <div class="results-heading">
+                        <div>
+                            <span class="section-kicker">02 / OUTPUT</span>
+                            <h2>本次生成结果</h2>
+                            <p id="resultSubtitle">选择渠道后，一次给你 3 个不同版本。</p>
+                        </div>
+                        <button class="secondary-button" id="copyAllButton" type="button" disabled>
+                            复制全部
+                        </button>
+                    </div>
+
+                    <!-- 初始显示的空状态。生成后会隐藏它。 -->
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-state-inner">
+                            <div class="empty-icon" aria-hidden="true">🌾</div>
+                            <h3>好文案，从一条真实的产品信息开始</h3>
+                            <p>
+                                在左侧填写名称、产地和特色，再选择想投放的渠道。
+                                点击“生成 3 个宣传版本”，这里就会出现可选文案。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 三张结果卡片会由 JavaScript 插入到这个容器里。 -->
+                    <div class="results-grid" id="resultList" aria-live="polite" hidden></div>
+                </div>
+
+                <!-- 加分项：传播效果简易评估。生成文案后才显示。 -->
+                <section class="panel score-panel" id="scorePanel" hidden>
+                    <div class="score-top">
+                        <div class="score-number">
+                            <span id="overallScore">--</span>
+                            <small>综合分</small>
+                        </div>
+                        <div>
+                            <span class="section-kicker">03 / CHECK</span>
+                            <h2>传播效果简易评估</h2>
+                            <p>根据信息完整度、卖点表达和渠道节奏进行规则估算。</p>
+                        </div>
+                    </div>
+
+                    <div class="score-list" id="scoreList"></div>
+                    <p class="score-advice" id="scoreAdvice"></p>
+                </section>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <span>农语 AI · 农产品宣传文案生成工具</span>
+            <span>前端页面 + Node.js API · 评估结果仅用于创作参考</span>
+        </footer>
+    </div>
+
+    <!-- 复制成功后，通过这个小提示告诉用户“已经复制好了”。 -->
+    <div class="toast" id="toast" role="status" aria-live="polite">文案已复制</div>
+    <script src="/app.js" defer></script>
+</body>
+</html>
