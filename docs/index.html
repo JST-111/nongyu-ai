@@ -1,0 +1,3203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>农语AI｜水果与农产品宣传词生成工具</title>
+
+    <style>
+        :root {
+            --red:#a63c2f;
+            --deep-green: #173f2a;
+            --main-green: #2f713f;
+            --light-green: #dfeccf;
+            --cream: #f7f7ef;
+            --card: #ffffff;
+            --ink: #1f2d24;
+            --muted: #6e7c72;
+            --line: #dfe6dc;
+            --gold: #f4c95d;
+            --soft-gold: #fff4cf;
+            --danger: #a63c2f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        body.cover-open {
+            overflow: hidden;
+            background: #f4f0e7;
+        }
+
+        .welcome-page {
+            position: relative;
+            isolation: isolate;
+            display: grid;
+            min-height: 100svh;
+            grid-template-rows: auto 1fr auto;
+            overflow: hidden;
+            padding: 28px clamp(22px, 4vw, 58px) 22px;
+            color: #263b30;
+            background: #f7f3eb;
+            transition: opacity 0.32s ease, transform 0.32s ease;
+        }
+
+        .welcome-page::before {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            background:
+                radial-gradient(circle at 15% 10%, rgba(255, 255, 255, 0.96), transparent 42%),
+                linear-gradient(90deg, rgba(255, 252, 246, 0.92) 0%, rgba(255, 252, 246, 0.66) 43%, rgba(255, 252, 246, 0.19) 76%, rgba(255, 255, 255, 0.32) 100%),
+                linear-gradient(0deg, rgba(255, 255, 255, 0.86), transparent 48%);
+            pointer-events: none;
+        }
+
+        .welcome-page::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+            mix-blend-mode: soft-light;
+            pointer-events: none;
+        }
+
+        .fruit-collage {
+            position: absolute;
+            z-index: 0;
+            inset: 0;
+            display: grid;
+            grid-auto-flow: dense;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            grid-template-rows: repeat(4, minmax(0, 1fr));
+            gap: 11px;
+            padding: 12px;
+        }
+
+        .fruit-tile {
+            position: relative;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+            background: #f1ece2;
+            border: 1px solid rgba(255, 255, 255, 0.68);
+            border-radius: 16px;
+            box-shadow: 0 12px 34px rgba(68, 54, 39, 0.08);
+        }
+
+        .fruit-tile:nth-child(1) {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+
+        .fruit-tile:nth-child(4),
+        .fruit-tile:nth-child(6),
+        .fruit-tile:nth-child(8),
+        .fruit-tile:nth-child(13),
+        .fruit-tile:nth-child(15) {
+            grid-column: span 2;
+        }
+
+        .fruit-tile:nth-child(10) {
+            grid-row: span 2;
+        }
+
+        .fruit-tile::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 42%),
+                linear-gradient(0deg, rgba(52, 45, 32, 0.07), transparent 48%);
+            pointer-events: none;
+        }
+
+        .fruit-tile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: saturate(1.04) brightness(1.02);
+            transform: scale(1.035);
+            transition: transform 0.8s ease, filter 0.8s ease;
+            animation: photo-breathe 12s ease-in-out infinite alternate;
+        }
+
+        .fruit-tile:nth-child(2n) img {
+            animation-delay: -3s;
+        }
+
+        .fruit-tile:nth-child(3n) img {
+            animation-delay: -6s;
+        }
+
+        .fruit-tile:nth-child(5n) img {
+            animation-delay: -9s;
+        }
+
+        .fruit-tile:hover img {
+            filter: saturate(1.12) brightness(1.04);
+            transform: scale(1.075);
+        }
+
+        @keyframes photo-breathe {
+            from {
+                transform: scale(1.035) translate3d(-0.3%, -0.2%, 0);
+            }
+            to {
+                transform: scale(1.07) translate3d(0.5%, 0.4%, 0);
+            }
+        }
+
+        .welcome-page.is-leaving {
+            opacity: 0;
+            transform: scale(1.018);
+        }
+
+        .welcome-nav,
+        .welcome-stage,
+        .welcome-footer {
+            position: relative;
+            z-index: 2;
+            width: min(1280px, 100%);
+            margin-inline: auto;
+        }
+
+        .welcome-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .welcome-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #203d2d;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 0.09em;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .welcome-brand-mark {
+            display: grid;
+            width: 39px;
+            height: 39px;
+            place-items: center;
+            color: #ffffff;
+            background: linear-gradient(145deg, #ea815d, #c94c3b);
+            border: 1px solid rgba(255, 255, 255, 0.82);
+            border-radius: 50% 50% 45% 55% / 52% 46% 54% 48%;
+            box-shadow: 0 10px 24px rgba(166, 60, 47, 0.22);
+            font-size: 17px;
+            font-weight: 900;
+        }
+
+        .welcome-edition {
+            padding: 8px 13px;
+            color: #69766c;
+            background: rgba(255, 255, 255, 0.58);
+            border: 1px solid rgba(255, 255, 255, 0.86);
+            border-radius: 999px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 10px;
+            letter-spacing: 0.16em;
+            backdrop-filter: blur(12px);
+        }
+
+        .welcome-stage {
+            display: flex;
+            align-items: center;
+            padding: 38px 0 28px;
+        }
+
+        .welcome-copy {
+            width: min(710px, 62vw);
+            padding: clamp(27px, 4vw, 52px);
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.76), transparent 46%),
+                rgba(255, 252, 246, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.88);
+            border-radius: clamp(24px, 3vw, 38px);
+            box-shadow: 0 30px 80px rgba(85, 65, 43, 0.13);
+            backdrop-filter: blur(19px) saturate(1.08);
+        }
+
+        .welcome-kicker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #b85339;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+        }
+
+        .welcome-kicker::before {
+            content: "";
+            width: 26px;
+            height: 1px;
+            background: currentColor;
+        }
+
+        .welcome-title {
+            max-width: 650px;
+            margin-top: 21px;
+            color: #1d3b2b;
+            font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+            font-size: clamp(48px, 6.5vw, 91px);
+            font-weight: 700;
+            line-height: 1.02;
+            letter-spacing: -0.065em;
+            text-wrap: balance;
+        }
+
+        .welcome-title em {
+            display: inline-block;
+            color: #c9543d;
+            font-style: normal;
+        }
+
+        .welcome-lead {
+            max-width: 540px;
+            margin-top: 24px;
+            color: #5f6d62;
+            font-size: 14px;
+            line-height: 1.9;
+        }
+
+        .fruit-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-top: 18px;
+            list-style: none;
+        }
+
+        .fruit-tags li {
+            padding: 6px 10px;
+            color: #536258;
+            background: rgba(255, 255, 255, 0.64);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 999px;
+            font-size: 10px;
+            letter-spacing: 0.04em;
+            box-shadow: 0 5px 15px rgba(72, 57, 40, 0.05);
+        }
+
+        .welcome-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 18px;
+            margin-top: 31px;
+        }
+
+        .cover-enter-button {
+            display: inline-flex;
+            min-height: 62px;
+            align-items: center;
+            gap: 24px;
+            padding: 7px 8px 7px 24px;
+            color: #ffffff;
+            background: #234b34;
+            border: 0;
+            border-radius: 999px;
+            box-shadow: 0 17px 38px rgba(34, 77, 52, 0.2);
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .cover-enter-button:hover {
+            background: #193c29;
+            box-shadow: 0 21px 44px rgba(34, 77, 52, 0.26);
+            transform: translateY(-3px);
+        }
+
+        .cover-enter-button:focus-visible,
+        .back-cover-button:focus-visible {
+            outline: 3px solid #f4d880;
+            outline-offset: 4px;
+        }
+
+        .enter-button-icon {
+            display: grid;
+            width: 47px;
+            height: 47px;
+            place-items: center;
+            color: #244833;
+            background: #f4cc65;
+            border-radius: 50%;
+            font-size: 20px;
+            transition: transform 0.25s ease;
+        }
+
+        .cover-enter-button:hover .enter-button-icon {
+            transform: rotate(8deg) translateX(2px);
+        }
+
+        .cover-note {
+            color: #7e8980;
+            font-size: 10px;
+            letter-spacing: 0.03em;
+        }
+
+        .welcome-footer {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            color: #717e74;
+            font-size: 10px;
+            letter-spacing: 0.04em;
+        }
+
+        .welcome-footer strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #314638;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+        }
+
+        .welcome-photo-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 13px;
+            color: #536258;
+            background: rgba(255, 255, 255, 0.62);
+            border: 1px solid rgba(255, 255, 255, 0.88);
+            border-radius: 999px;
+            backdrop-filter: blur(12px);
+        }
+
+        .welcome-photo-count::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            background: #d45f44;
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px rgba(212, 95, 68, 0.12);
+        }
+
+        .app-page {
+            animation: workspace-in 0.48s ease both;
+        }
+
+        @keyframes workspace-in {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-tools {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-cover-button {
+            padding: 7px 12px;
+            color: #f7f8ea;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.17);
+            border-radius: 999px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .back-cover-button:hover {
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--ink);
+            font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+            background:
+                radial-gradient(circle at 8% 10%, rgba(170, 203, 113, 0.26), transparent 28rem),
+                radial-gradient(circle at 92% 40%, rgba(244, 201, 93, 0.13), transparent 24rem),
+                var(--cream);
+            line-height: 1.6;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        .page {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 24px 0 40px;
+        }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            padding: 28px 34px 34px;
+            color: #ffffff;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.06), transparent 45%),
+                linear-gradient(120deg, var(--deep-green), #2d6839 62%, #617f34);
+            border-radius: 30px;
+            box-shadow: 0 24px 60px rgba(30, 64, 41, 0.18);
+        }
+
+        .hero::before,
+        .hero::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero::before {
+            width: 330px;
+            height: 330px;
+            right: -110px;
+            top: -160px;
+            background: rgba(245, 202, 98, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+
+        .hero::after {
+            width: 180px;
+            height: 180px;
+            right: 23%;
+            bottom: -115px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .hero-top {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 34px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            place-items: center;
+            color: var(--deep-green);
+            background: var(--gold);
+            border-radius: 50% 50% 48% 52% / 45% 55% 45% 55%;
+            font-size: 17px;
+            font-weight: 900;
+        }
+
+        .badge {
+            padding: 7px 13px;
+            color: #f7f8ea;
+            background: rgba(255, 255, 255, 0.11);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 999px;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(250px, 0.55fr);
+            align-items: end;
+            gap: 44px;
+        }
+
+        .eyebrow {
+            margin-bottom: 12px;
+            color: #d9e7bd;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+        }
+
+        h1 {
+            max-width: 760px;
+            font-size: clamp(38px, 5.4vw, 68px);
+            line-height: 1.08;
+            letter-spacing: -0.045em;
+        }
+
+        h1 span {
+            color: #f4d880;
+        }
+
+        .hero-lead {
+            max-width: 680px;
+            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.77);
+            font-size: 15px;
+            line-height: 1.9;
+        }
+
+        .hero-points {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 18px;
+            margin-top: 23px;
+            list-style: none;
+            color: #eef4e7;
+            font-size: 13px;
+        }
+
+        .hero-points li::before {
+            content: "✓";
+            display: inline-grid;
+            width: 18px;
+            height: 18px;
+            margin-right: 7px;
+            place-items: center;
+            color: var(--deep-green);
+            background: #e6d48f;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .hero-steps {
+            display: grid;
+            gap: 10px;
+        }
+
+        .step-card {
+            display: grid;
+            grid-template-columns: 36px 1fr;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            border-radius: 14px;
+            backdrop-filter: blur(8px);
+        }
+
+        .step-number {
+            color: #f6d97d;
+            font-family: Georgia, serif;
+            font-size: 23px;
+        }
+
+        .step-card strong {
+            display: block;
+            font-size: 13px;
+        }
+
+        .step-card small {
+            display: block;
+            margin-top: 1px;
+            color: rgba(255, 255, 255, 0.57);
+            font-size: 11px;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 370px minmax(0, 1fr);
+            align-items: start;
+            gap: 22px;
+            margin-top: 22px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.93);
+            border: 1px solid rgba(35, 80, 47, 0.1);
+            border-radius: 22px;
+            box-shadow: 0 14px 35px rgba(31, 64, 43, 0.07);
+        }
+
+        .form-panel {
+            padding: 25px;
+        }
+
+        .section-kicker {
+            color: var(--main-green);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+        }
+
+        .panel-heading {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 23px;
+        }
+
+        .panel-heading h2 {
+            margin-top: 5px;
+            font-size: 22px;
+            line-height: 1.3;
+            letter-spacing: -0.03em;
+        }
+
+        .text-button {
+            flex: none;
+            padding: 7px 10px;
+            color: var(--main-green);
+            background: #edf5e9;
+            border: 1px solid #dbe9d4;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .text-button:hover {
+            background: #e1eeda;
+            transform: translateY(-1px);
+        }
+
+        .form-item {
+            margin-bottom: 16px;
+        }
+
+        .form-item label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 7px;
+            color: #33483a;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .required {
+            color: #8ba06f;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .form-item input,
+        .form-item select {
+            width: 100%;
+            min-height: 45px;
+            padding: 10px 13px;
+            color: var(--ink);
+            background: #fbfcf8;
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            outline: none;
+            font-size: 14px;
+            transition: 0.2s ease;
+        }
+
+        .form-item input:focus,
+        .form-item select:focus {
+            background: #ffffff;
+            border-color: #8bb26d;
+            box-shadow: 0 0 0 4px rgba(120, 162, 92, 0.13);
+        }
+
+        .form-item input::placeholder {
+            color: #a9b2aa;
+        }
+
+        .form-hint {
+            margin-top: 6px;
+            color: #8a968d;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .generate-button {
+            display: flex;
+            width: 100%;
+            min-height: 52px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 22px;
+            padding: 12px 18px;
+            color: #ffffff;
+            background: linear-gradient(135deg, #2e713f, #225a34);
+            border: 0;
+            border-radius: 13px;
+            box-shadow: 0 12px 25px rgba(42, 105, 57, 0.22);
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .generate-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 30px rgba(42, 105, 57, 0.28);
+        }
+
+        .generate-button:active {
+            transform: translateY(0);
+        }
+
+        .privacy-note {
+            display: flex;
+            gap: 7px;
+            margin-top: 13px;
+            color: #8b978e;
+            font-size: 10px;
+            line-height: 1.6;
+        }
+
+        .output-column {
+            display: grid;
+            gap: 18px;
+        }
+
+        .results-panel {
+            padding: 25px;
+        }
+
+        .results-heading {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .results-heading h2 {
+            margin-top: 5px;
+            font-size: 23px;
+            line-height: 1.3;
+            letter-spacing: -0.03em;
+        }
+
+        .results-heading p {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .secondary-button {
+            flex: none;
+            padding: 9px 13px;
+            color: var(--main-green);
+            background: #ffffff;
+            border: 1px solid #cddbc7;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .secondary-button:hover:not(:disabled) {
+            background: #f1f7ed;
+            border-color: #a9c69c;
+        }
+
+        .secondary-button:disabled {
+            color: #aab2ab;
+            background: #f5f6f3;
+            border-color: #e6e9e4;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            display: grid;
+            min-height: 290px;
+            padding: 30px;
+            place-items: center;
+            text-align: center;
+            background:
+                linear-gradient(#fbfcf8, #fbfcf8) padding-box,
+                repeating-linear-gradient(
+                    135deg,
+                    #dfe9d9 0,
+                    #dfe9d9 8px,
+                    transparent 8px,
+                    transparent 16px
+                ) border-box;
+            border: 1px solid transparent;
+            border-radius: 16px;
+        }
+
+        .empty-state-inner {
+            max-width: 370px;
+        }
+
+        .empty-icon {
+            display: grid;
+            width: 66px;
+            height: 66px;
+            margin: 0 auto 15px;
+            place-items: center;
+            background: #eaf3e4;
+            border-radius: 22px;
+            font-size: 30px;
+            transform: rotate(-4deg);
+        }
+
+        .empty-state h3 {
+            font-size: 17px;
+        }
+
+        .empty-state p {
+            margin-top: 7px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 13px;
+        }
+
+        .copy-card {
+            display: flex;
+            min-height: 260px;
+            flex-direction: column;
+            padding: 17px;
+            background: #fbfcf7;
+            border: 1px solid #e1e8dc;
+            border-radius: 15px;
+            animation: card-in 0.35s ease both;
+        }
+
+        .copy-card:nth-child(2) {
+            animation-delay: 0.06s;
+        }
+
+        .copy-card:nth-child(3) {
+            animation-delay: 0.12s;
+        }
+
+        @keyframes card-in {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .copy-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e7ece3;
+        }
+
+        .version-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--main-green);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+        }
+
+        .version-tag::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            background: #7ea15f;
+            border-radius: 50%;
+        }
+
+        .copy-button {
+            padding: 5px 8px;
+            color: #607066;
+            background: #ffffff;
+            border: 1px solid #dee5da;
+            border-radius: 7px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .copy-button:hover {
+            color: var(--main-green);
+            border-color: #a8c49a;
+        }
+
+        .copy-button.copied {
+            color: #ffffff;
+            background: var(--main-green);
+            border-color: var(--main-green);
+        }
+
+        .copy-text {
+            flex: 1;
+            padding-top: 14px;
+            color: #34483a;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            font-size: 13px;
+            line-height: 1.9;
+        }
+
+        .score-panel {
+            padding: 22px 25px;
+        }
+
+        .score-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .score-number {
+            display: flex;
+            width: 70px;
+            height: 70px;
+            flex: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--deep-green);
+            background: var(--soft-gold);
+            border: 1px solid #efd996;
+            border-radius: 50%;
+            font-size: 25px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .score-number small {
+            margin-top: 4px;
+            color: #84713e;
+            font-size: 9px;
+            font-weight: 600;
+        }
+
+        .score-top h2 {
+            font-size: 18px;
+        }
+
+        .score-top p {
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .score-list {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .score-item {
+            padding: 13px;
+            background: #f8faf5;
+            border: 1px solid #e7ece2;
+            border-radius: 12px;
+        }
+
+        .score-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: #526456;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .score-label strong {
+            color: var(--main-green);
+            font-size: 13px;
+        }
+
+        .score-track {
+            height: 6px;
+            margin-top: 9px;
+            overflow: hidden;
+            background: #e5ebe1;
+            border-radius: 999px;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #91b36c, #397b49);
+            border-radius: inherit;
+            transition: width 0.5s ease;
+        }
+
+        .score-note {
+            margin-top: 7px;
+            color: #89938b;
+            font-size: 9px;
+            line-height: 1.5;
+        }
+
+        .score-advice {
+            display: flex;
+            gap: 9px;
+            margin-top: 13px;
+            padding: 11px 13px;
+            color: #5e6d61;
+            background: #f7f4e8;
+            border-radius: 10px;
+            font-size: 10px;
+            line-height: 1.7;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 22px 5px 0;
+            color: #8b978e;
+            font-size: 10px;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            z-index: 20;
+            padding: 10px 16px;
+            color: #ffffff;
+            background: rgba(23, 63, 42, 0.94);
+            border-radius: 999px;
+            box-shadow: 0 10px 28px rgba(23, 63, 42, 0.2);
+            font-size: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, 10px);
+            transition: 0.25s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .cover-secondary-button {
+            display: inline-flex;
+            min-height: 58px;
+            align-items: center;
+            gap: 15px;
+            padding: 8px 9px 8px 20px;
+            color: #244833;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            border-radius: 999px;
+            box-shadow: 0 12px 30px rgba(72, 57, 40, 0.09);
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .cover-secondary-button:hover {
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 16px 34px rgba(72, 57, 40, 0.13);
+            transform: translateY(-3px);
+        }
+
+        .cover-secondary-button:focus-visible,
+        .atlas-copy-button:focus-visible,
+        .regenerate-button:focus-visible,
+        .fruit-option:focus-visible {
+            outline: 3px solid #d8bd63;
+            outline-offset: 3px;
+        }
+
+        .atlas-button-icon {
+            display: grid;
+            width: 40px;
+            height: 40px;
+            place-items: center;
+            color: #ffffff;
+            background: linear-gradient(145deg, #7c9c62, #446e4b);
+            border-radius: 50%;
+            font-size: 18px;
+        }
+
+        .app-page {
+            position: relative;
+            isolation: isolate;
+        }
+
+        .app-fruit-bg,
+        .atlas-fruit-bg {
+            position: fixed;
+            z-index: -2;
+            inset: 0;
+            display: grid;
+            gap: 9px;
+            padding: 9px;
+            pointer-events: none;
+        }
+
+        .app-fruit-bg {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-rows: repeat(3, minmax(0, 1fr));
+        }
+
+        .app-fruit-bg img,
+        .atlas-fruit-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 14px;
+            filter: saturate(0.9) brightness(1.06);
+            opacity: 0.86;
+        }
+
+        .app-page::before,
+        .atlas-page::before {
+            content: "";
+            position: fixed;
+            z-index: -1;
+            inset: 0;
+            background:
+                radial-gradient(circle at 15% 8%, rgba(255, 255, 255, 0.96), transparent 38%),
+                linear-gradient(90deg, rgba(255, 253, 248, 0.88), rgba(255, 253, 248, 0.7)),
+                linear-gradient(0deg, rgba(255, 255, 255, 0.84), transparent 50%);
+            pointer-events: none;
+        }
+
+        .app-page .hero {
+            color: #203d2d;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.82), transparent 48%),
+                rgba(255, 251, 244, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 24px 60px rgba(70, 56, 38, 0.12);
+            backdrop-filter: blur(18px) saturate(1.06);
+        }
+
+        .app-page .hero::before {
+            background: rgba(209, 93, 65, 0.11);
+            border-color: rgba(255, 255, 255, 0.7);
+        }
+
+        .app-page .hero::after {
+            background: rgba(244, 201, 93, 0.16);
+        }
+
+        .app-page .brand {
+            color: #214331;
+        }
+
+        .app-page .brand-mark {
+            color: #ffffff;
+            background: linear-gradient(145deg, #eb825e, #c94e3d);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 20px rgba(166, 60, 47, 0.18);
+        }
+
+        .app-page .badge {
+            color: #52675a;
+            background: rgba(255, 255, 255, 0.56);
+            border-color: rgba(255, 255, 255, 0.85);
+        }
+
+        .app-page .back-cover-button {
+            color: #355843;
+            background: rgba(255, 255, 255, 0.55);
+            border-color: rgba(255, 255, 255, 0.88);
+        }
+
+        .app-page .back-cover-button:hover {
+            background: rgba(255, 255, 255, 0.84);
+        }
+
+        .app-page .eyebrow {
+            color: #a84f39;
+        }
+
+        .app-page .hero h1 {
+            color: #1c3b2a;
+        }
+
+        .app-page .hero h1 span {
+            color: #c9553d;
+        }
+
+        .app-page .hero-lead {
+            color: #5c6c61;
+        }
+
+        .app-page .hero-points {
+            color: #425547;
+        }
+
+        .app-page .hero-points li::before {
+            color: #274d36;
+            background: #dceacf;
+        }
+
+        .app-page .step-card {
+            background: rgba(255, 255, 255, 0.5);
+            border-color: rgba(255, 255, 255, 0.88);
+        }
+
+        .app-page .step-number {
+            color: #bd5a42;
+        }
+
+        .app-page .step-card strong {
+            color: #2b4635;
+        }
+
+        .app-page .step-card small {
+            color: #748177;
+        }
+
+        .app-page .panel {
+            background: rgba(255, 253, 249, 0.82);
+            border-color: rgba(255, 255, 255, 0.88);
+            box-shadow: 0 16px 40px rgba(65, 53, 38, 0.09);
+            backdrop-filter: blur(16px);
+        }
+
+        .atlas-page {
+            position: relative;
+            isolation: isolate;
+            min-height: 100svh;
+            padding: 26px clamp(18px, 3vw, 44px) 38px;
+            color: #263b30;
+            background: #f7f3eb;
+        }
+
+        .atlas-fruit-bg {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-rows: repeat(3, minmax(0, 1fr));
+        }
+
+        .atlas-nav {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            width: min(1280px, 100%);
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin: 0 auto 20px;
+        }
+
+        .atlas-nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .atlas-copy-button {
+            padding: 9px 14px;
+            color: #ffffff;
+            background: #264c35;
+            border: 0;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .atlas-back-button {
+            padding: 9px 14px;
+            color: #355843;
+            background: rgba(255, 255, 255, 0.58);
+            border-color: rgba(255, 255, 255, 0.88);
+        }
+
+        .atlas-back-button:hover {
+            background: rgba(255, 255, 255, 0.86);
+        }
+
+        .atlas-shell {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            width: min(1280px, 100%);
+            grid-template-columns: 310px minmax(0, 1fr);
+            align-items: start;
+            gap: 18px;
+            margin: 0 auto;
+        }
+
+        .atlas-index {
+            position: sticky;
+            top: 20px;
+            padding: 26px;
+            background: rgba(255, 253, 249, 0.78);
+            border: 1px solid rgba(255, 255, 255, 0.92);
+            border-radius: 27px;
+            box-shadow: 0 18px 48px rgba(65, 53, 38, 0.1);
+            backdrop-filter: blur(20px) saturate(1.05);
+        }
+
+        .atlas-kicker {
+            color: #b6533c;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+        }
+
+        .atlas-title {
+            max-width: 270px;
+            margin-top: 13px;
+            color: #1d3b2b;
+            font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+            font-size: 39px;
+            line-height: 1.08;
+            letter-spacing: -0.055em;
+        }
+
+        .atlas-intro {
+            margin-top: 15px;
+            color: #66746a;
+            font-size: 11px;
+            line-height: 1.8;
+        }
+
+        .fruit-menu {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 22px;
+        }
+
+        .fruit-option {
+            display: flex;
+            min-width: 0;
+            align-items: center;
+            gap: 9px;
+            padding: 7px;
+            color: #405448;
+            background: rgba(255, 255, 255, 0.58);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 13px;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .fruit-option:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+        }
+
+        .fruit-option.active {
+            color: #ffffff;
+            background: #294e37;
+            border-color: #294e37;
+            box-shadow: 0 8px 18px rgba(36, 74, 50, 0.16);
+        }
+
+        .fruit-option-thumb {
+            display: grid;
+            width: 37px;
+            height: 37px;
+            flex: none;
+            place-items: center;
+            overflow: hidden;
+            background: #eee9df;
+            border-radius: 10px;
+            font-size: 20px;
+        }
+
+        .fruit-option-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .fruit-option-name {
+            display: block;
+            overflow: hidden;
+            font-size: 11px;
+            font-weight: 800;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .forum-note {
+            margin-top: 18px;
+            padding: 13px;
+            color: #66736a;
+            background: rgba(239, 232, 218, 0.7);
+            border-radius: 13px;
+        }
+
+        .forum-note span {
+            color: #a94e38;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+        }
+
+        .forum-note p {
+            margin-top: 5px;
+            font-size: 10px;
+            line-height: 1.7;
+        }
+
+        .fruit-detail {
+            overflow: hidden;
+            background: rgba(255, 253, 249, 0.82);
+            border: 1px solid rgba(255, 255, 255, 0.92);
+            border-radius: 31px;
+            box-shadow: 0 24px 65px rgba(65, 53, 38, 0.13);
+            backdrop-filter: blur(20px) saturate(1.04);
+        }
+
+        .fruit-visual {
+            position: relative;
+            min-height: 300px;
+            overflow: hidden;
+            background: #e8dfcf;
+        }
+
+        .fruit-visual > img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .fruit-emoji-visual {
+            position: absolute;
+            inset: 0;
+            place-items: center;
+            font-size: 130px;
+            background:
+                radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.9), transparent 35%),
+                linear-gradient(135deg, #f8e4b8, #e9b6a5 55%, #d9e4bd);
+        }
+
+        .fruit-emoji-visual:not([hidden]) {
+            display: grid;
+        }
+
+        .fruit-visual-shade {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(17, 45, 30, 0.66), rgba(17, 45, 30, 0.08) 72%),
+                linear-gradient(0deg, rgba(12, 35, 23, 0.42), transparent 55%);
+        }
+
+        .story-number {
+            position: absolute;
+            top: 20px;
+            right: 22px;
+            padding: 6px 10px;
+            color: #ffffff;
+            background: rgba(29, 59, 43, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.36);
+            border-radius: 999px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 9px;
+            letter-spacing: 0.13em;
+            backdrop-filter: blur(10px);
+        }
+
+        .fruit-title-block {
+            position: absolute;
+            left: clamp(22px, 4vw, 42px);
+            bottom: 27px;
+            max-width: 62%;
+            color: #ffffff;
+        }
+
+        .fruit-title-block p {
+            color: #f4d78b;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 10px;
+            letter-spacing: 0.2em;
+        }
+
+        .fruit-title-block h2 {
+            margin-top: 4px;
+            font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+            font-size: clamp(42px, 5vw, 67px);
+            line-height: 1;
+            letter-spacing: -0.05em;
+        }
+
+        .fruit-title-block span {
+            display: block;
+            margin-top: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+        }
+
+        .fruit-facts {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            padding: 17px 22px;
+            background: rgba(255, 255, 255, 0.65);
+            border-bottom: 1px solid rgba(217, 210, 198, 0.6);
+        }
+
+        .fruit-facts div {
+            min-width: 0;
+            padding: 10px 12px;
+            background: rgba(249, 246, 239, 0.68);
+            border-radius: 11px;
+        }
+
+        .fruit-facts span {
+            display: block;
+            color: #8b938b;
+            font-size: 8px;
+            letter-spacing: 0.08em;
+        }
+
+        .fruit-facts strong {
+            display: block;
+            margin-top: 4px;
+            overflow: hidden;
+            color: #334e3c;
+            font-size: 11px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .story-briefs {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0;
+            padding: 6px 22px 0;
+        }
+
+        .story-brief {
+            padding: 22px 18px 20px 0;
+        }
+
+        .story-brief + .story-brief {
+            padding-left: 20px;
+            border-left: 1px solid rgba(219, 213, 201, 0.7);
+        }
+
+        .story-brief > span {
+            color: #b85c45;
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: 0.11em;
+        }
+
+        .story-brief h3 {
+            margin-top: 7px;
+            color: #294431;
+            font-size: 15px;
+        }
+
+        .story-brief p {
+            margin-top: 9px;
+            color: #657168;
+            font-size: 10px;
+            line-height: 1.9;
+        }
+
+        .generated-story {
+            margin: 0 22px 22px;
+            padding: 24px;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.72), transparent 52%),
+                rgba(241, 236, 224, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+        }
+
+        .generated-story-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(211, 203, 190, 0.64);
+        }
+
+        .generated-story-head span {
+            color: #ad523c;
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+        }
+
+        .generated-story-head h3 {
+            margin-top: 5px;
+            color: #294431;
+            font-size: 20px;
+            line-height: 1.35;
+        }
+
+        .regenerate-button {
+            flex: none;
+            padding: 8px 12px;
+            color: #31523c;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .generated-article {
+            padding-top: 17px;
+            color: #536157;
+            font-size: 11px;
+            line-height: 2;
+        }
+
+        .generated-article p + p {
+            margin-top: 11px;
+        }
+
+        @media (max-width: 980px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 26px;
+            }
+
+            .hero-steps {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .page {
+                width: min(100% - 20px, 1180px);
+                padding-top: 10px;
+            }
+
+            .hero {
+                padding: 22px 20px 25px;
+                border-radius: 22px;
+            }
+
+            .hero-top {
+                align-items: flex-start;
+                margin-bottom: 28px;
+            }
+
+            .badge {
+                text-align: right;
+            }
+
+            .hero-steps,
+            .results-grid,
+            .score-list {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-steps {
+                display: none;
+            }
+
+            .hero-lead {
+                font-size: 14px;
+            }
+
+            .form-panel,
+            .results-panel,
+            .score-panel {
+                padding: 20px;
+                border-radius: 18px;
+            }
+
+            .results-heading {
+                flex-direction: column;
+            }
+
+            .secondary-button {
+                width: 100%;
+            }
+
+            .copy-card {
+                min-height: 220px;
+            }
+
+            .footer {
+                flex-direction: column;
+                gap: 4px;
+            }
+        }
+
+        @media (max-width: 980px) {
+            .welcome-page {
+                padding: 20px 18px 18px;
+            }
+
+            .welcome-copy {
+                width: min(680px, 84vw);
+            }
+
+            .fruit-collage {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+                grid-template-rows: repeat(4, minmax(0, 1fr));
+            }
+
+            .fruit-tile:nth-child(4),
+            .fruit-tile:nth-child(6),
+            .fruit-tile:nth-child(8),
+            .fruit-tile:nth-child(13),
+            .fruit-tile:nth-child(15) {
+                grid-column: auto;
+            }
+
+            .fruit-tile:nth-child(10) {
+                grid-row: auto;
+            }
+
+            .fruit-tile:nth-child(1) {
+                grid-column: span 2;
+                grid-row: span 2;
+            }
+
+            .fruit-tile:nth-child(8),
+            .fruit-tile:nth-child(13) {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .welcome-page {
+                min-height: 100svh;
+                padding: 15px 12px 12px;
+            }
+
+            .welcome-brand {
+                font-size: 14px;
+            }
+
+            .welcome-brand-mark {
+                width: 34px;
+                height: 34px;
+            }
+
+            .welcome-edition {
+                max-width: 145px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .welcome-stage {
+                align-items: flex-end;
+                padding: 28px 0 20px;
+            }
+
+            .welcome-copy {
+                width: 100%;
+                padding: 27px 23px 24px;
+                border-radius: 25px;
+                backdrop-filter: blur(14px);
+            }
+
+            .welcome-kicker {
+                font-size: 9px;
+            }
+
+            .welcome-title {
+                margin-top: 16px;
+                font-size: clamp(41px, 13vw, 62px);
+                letter-spacing: -0.075em;
+            }
+
+            .welcome-lead {
+                margin-top: 17px;
+                font-size: 12px;
+                line-height: 1.8;
+            }
+
+            .welcome-actions {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 13px;
+                margin-top: 23px;
+            }
+
+            .cover-enter-button {
+                width: 100%;
+                min-height: 58px;
+                justify-content: space-between;
+                padding-left: 20px;
+            }
+
+            .enter-button-icon {
+                width: 44px;
+                height: 44px;
+            }
+
+            .welcome-footer > div:first-child {
+                display: none;
+            }
+
+            .welcome-photo-count {
+                font-size: 9px;
+            }
+
+            .fruit-collage {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                grid-template-rows: repeat(5, minmax(0, 1fr));
+                gap: 5px;
+                padding: 5px;
+            }
+
+            .fruit-tile:nth-child(1) {
+                grid-column: span 2;
+                grid-row: span 2;
+            }
+
+            .fruit-tile:nth-child(6),
+            .fruit-tile:nth-child(8),
+            .fruit-tile:nth-child(13),
+            .fruit-tile:nth-child(15) {
+                grid-column: auto;
+                grid-row: auto;
+            }
+
+            .fruit-tile:nth-child(6) {
+                grid-column: span 2;
+            }
+
+            .fruit-tile:nth-child(10) {
+                grid-row: span 2;
+            }
+
+            .hero-top {
+                flex-wrap: wrap;
+            }
+
+            .hero-tools {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+        @media (max-width: 980px) {
+            .app-fruit-bg {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                grid-template-rows: repeat(4, minmax(0, 1fr));
+            }
+
+            .atlas-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .atlas-index {
+                position: relative;
+                top: auto;
+            }
+
+            .atlas-title {
+                max-width: 560px;
+            }
+
+            .fruit-menu {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 720px) {
+            .cover-secondary-button {
+                width: 100%;
+                justify-content: space-between;
+                padding-left: 20px;
+            }
+
+            .app-fruit-bg {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                grid-template-rows: repeat(4, minmax(0, 1fr));
+                gap: 5px;
+                padding: 5px;
+            }
+
+            .atlas-page {
+                padding: 15px 10px 26px;
+            }
+
+            .atlas-nav {
+                align-items: flex-start;
+                margin-bottom: 14px;
+            }
+
+            .atlas-nav .welcome-brand {
+                max-width: 185px;
+                font-size: 13px;
+            }
+
+            .atlas-nav-actions {
+                align-items: flex-end;
+                flex-direction: column;
+            }
+
+            .atlas-index {
+                padding: 22px 18px;
+                border-radius: 22px;
+            }
+
+            .atlas-title {
+                max-width: none;
+                font-size: 38px;
+            }
+
+            .fruit-menu {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .fruit-detail {
+                border-radius: 23px;
+            }
+
+            .fruit-visual {
+                min-height: 245px;
+            }
+
+            .fruit-title-block {
+                max-width: 78%;
+            }
+
+            .fruit-facts {
+                grid-template-columns: 1fr;
+                padding: 13px;
+            }
+
+            .fruit-facts strong {
+                white-space: normal;
+            }
+
+            .story-briefs {
+                grid-template-columns: 1fr;
+                padding: 4px 17px 0;
+            }
+
+            .story-brief {
+                padding: 18px 0;
+            }
+
+            .story-brief + .story-brief {
+                padding-left: 0;
+                border-top: 1px solid rgba(219, 213, 201, 0.7);
+                border-left: 0;
+            }
+
+            .generated-story {
+                margin: 0 13px 13px;
+                padding: 19px 17px;
+            }
+
+            .generated-story-head {
+                flex-direction: column;
+            }
+
+            .regenerate-button {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .fruit-tile img,
+            .app-page {
+                animation: none;
+            }
+
+            .welcome-page,
+            .cover-enter-button,
+            .enter-button-icon {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+
+<body class="cover-open">
+
+    <section class="welcome-page" id="welcomePage" aria-labelledby="welcomeTitle">
+        <div class="fruit-collage" aria-hidden="true">
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/0bf4f2ffcd8c4e8fdbfcc6d34fb3d7ae.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/1acb8595a16f18a660cc92dc7c6e99b1.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/3dd73e10afa8cb718b6138da110c674c.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/4d7bdb3569c465b9ed9a080ab7e53859.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/64daf44e3c42732927f1caf919b79f2c.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/6acbaa8c93861e96b26d3fc3c4ea1bfa.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/6de7923a1e2342de51f9b4219168d92d.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/a136d26f5b8d0cd9a52d29b1b1f3bb42.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/a35557837a8faf9269e9f359812ed7aa.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/ad52fdef49ae4afaa9dcace1a6f7b45d.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/b8b479618f99a63ebad28a2c0bd50886.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/cad70024d78e5627669d2585b63096e5.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/e300d8fe24faa933010ea7299e8b5af2.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/e671302e02d8a538c5c9d5c840cc33fd.jpg" alt="">
+            </figure>
+            <figure class="fruit-tile">
+                <img src="./图片文件夹/ffae2924dfe5996611b3e7c776a6f0c5.jpg" alt="">
+            </figure>
+        </div>
+
+        <header class="welcome-nav">
+            <div class="welcome-brand">
+                <span class="welcome-brand-mark" aria-hidden="true">农</span>
+                <span>农语 AI · 鲜果灵感库</span>
+            </div>
+            <span class="welcome-edition">FRESH FRUIT / 2026</span>
+        </header>
+
+        <div class="welcome-stage">
+            <div class="welcome-copy">
+                <p class="welcome-kicker">多彩果香 · 一站式文案灵感</p>
+                <h1 class="welcome-title" id="welcomeTitle">
+                    每一种水果，<br>
+                    <em>都值得一句好介绍。</em>
+                </h1>
+                <p class="welcome-lead">
+                    樱桃、葡萄、桃子、香蕉、西瓜、梨和苹果，都可以成为好文案的主角。
+                    填写水果名称、产地和特色，一次生成适合短视频、电商、公众号和海报的 3 个版本。
+                </p>
+                <ul class="fruit-tags" aria-label="可生成文案的水果类型">
+                    <li>樱桃</li>
+                    <li>葡萄</li>
+                    <li>桃子</li>
+                    <li>香蕉</li>
+                    <li>西瓜</li>
+                    <li>苹果</li>
+                    <li>梨</li>
+                </ul>
+                <div class="welcome-actions">
+                    <button class="cover-enter-button" id="enterWorkspaceButton" type="button">
+                        <span>开始生成水果文案</span>
+                        <span class="enter-button-icon" aria-hidden="true">↗</span>
+                    </button>
+                    <button class="cover-secondary-button" id="enterAtlasButton" type="button">
+                        <span>探索水果故事</span>
+                        <span class="atlas-button-icon" aria-hidden="true">◎</span>
+                    </button>
+                    <span class="cover-note">多种水果通用 · 本地生成 · 一键复制</span>
+                </div>
+            </div>
+        </div>
+
+        <footer class="welcome-footer">
+            <div>
+                <strong>FRUIT STORY</strong>
+                本地水果影像集 · 多彩产地风味
+            </div>
+            <span class="welcome-photo-count">15 种水果瞬间 · 自然色彩采集</span>
+        </footer>
+    </section>
+
+    <div class="page app-page" id="appPage" hidden>
+        <div class="app-fruit-bg" aria-hidden="true">
+            <img src="./图片文件夹/0bf4f2ffcd8c4e8fdbfcc6d34fb3d7ae.jpg" alt="">
+            <img src="./图片文件夹/1acb8595a16f18a660cc92dc7c6e99b1.jpg" alt="">
+            <img src="./图片文件夹/3dd73e10afa8cb718b6138da110c674c.jpg" alt="">
+            <img src="./图片文件夹/4d7bdb3569c465b9ed9a080ab7e53859.jpg" alt="">
+            <img src="./图片文件夹/64daf44e3c42732927f1caf919b79f2c.jpg" alt="">
+            <img src="./图片文件夹/6acbaa8c93861e96b26d3fc3c4ea1bfa.jpg" alt="">
+            <img src="./图片文件夹/a136d26f5b8d0cd9a52d29b1b1f3bb42.jpg" alt="">
+            <img src="./图片文件夹/ad52fdef49ae4afaa9dcace1a6f7b45d.jpg" alt="">
+            <img src="./图片文件夹/b8b479618f99a63ebad28a2c0bd50886.jpg" alt="">
+            <img src="./图片文件夹/e300d8fe24faa933010ea7299e8b5af2.jpg" alt="">
+            <img src="./图片文件夹/e671302e02d8a538c5c9d5c840cc33fd.jpg" alt="">
+            <img src="./图片文件夹/ffae2924dfe5996611b3e7c776a6f0c5.jpg" alt="">
+        </div>
+
+        <header class="hero">
+            <div class="hero-top">
+                <div class="brand">
+                    <span class="brand-mark" aria-hidden="true">农</span>
+                    <span>农语 AI</span>
+                </div>
+                <div class="hero-tools">
+                    <span class="badge">赛道三 · 可交互智能工具原型</span>
+                    <button class="back-cover-button" id="workspaceToAtlasButton" type="button">
+                        水果档案
+                    </button>
+                    <button class="back-cover-button" id="backCoverButton" type="button">
+                        ← 返回封面
+                    </button>
+                </div>
+            </div>
+
+            <div class="hero-content">
+                <div>
+                    <p class="eyebrow">水果与农产品智能宣传词生成工具</p>
+                    <h1>让每一份好水果，<br><span>被更多人看见。</span></h1>
+                    <p class="hero-lead">
+                        不会写短视频、电商和公众号文案？只需要填好水果名称、产地和特色，
+                        一次生成 3 个不同版本，选择最合适的一条，直接复制使用。
+                    </p>
+
+                    <ul class="hero-points">
+                        <li>多种水果通用</li>
+                        <li>每次生成 3 个版本</li>
+                        <li>无需注册，一键复制</li>
+                    </ul>
+                </div>
+
+                <div class="hero-steps" aria-label="使用步骤">
+                    <div class="step-card">
+                        <span class="step-number">01</span>
+                        <div>
+                            <strong>填写产品信息</strong>
+                            <small>名称、产地、核心特色</small>
+                        </div>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-number">02</span>
+                        <div>
+                            <strong>选择宣传场景</strong>
+                            <small>短视频、电商、推文或海报</small>
+                        </div>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-number">03</span>
+                        <div>
+                            <strong>生成并复制</strong>
+                            <small>挑一条最有感觉的文案</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="workspace">
+
+            <aside class="panel form-panel">
+                <div class="panel-heading">
+                    <div>
+                        <span class="section-kicker">01 / INPUT</span>
+                        <h2>输入产品信息</h2>
+                    </div>
+
+                    <button class="text-button" id="exampleButton" type="button">填入示例</button>
+                </div>
+
+                <form id="copyForm">
+                    <div class="form-item">
+                        <label for="productName">
+                            农产品名称
+                            <span class="required">必填</span>
+                        </label>
+                        <input
+                            id="productName"
+                            name="productName"
+                            type="text"
+                            maxlength="20"
+                            placeholder="例如：阳光玫瑰葡萄"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-item">
+                        <label for="place">
+                            产地
+                            <span class="required">必填</span>
+                        </label>
+                        <input
+                            id="place"
+                            name="place"
+                            type="text"
+                            maxlength="24"
+                            placeholder="例如：山东烟台"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-item">
+                        <label for="features">
+                            产品特色
+                            <span class="required">必填</span>
+                        </label>
+                        <input
+                            id="features"
+                            name="features"
+                            type="text"
+                            maxlength="60"
+                            placeholder="例如：果粒饱满、清甜多汁"
+                            autocomplete="off"
+                            required
+                        >
+                        <p class="form-hint">用“、”或逗号隔开 2—3 个卖点，生成效果会更自然。</p>
+                    </div>
+
+                    <div class="form-item">
+                        <label for="style">
+                            文案风格
+                            <span class="required">选择 1 种</span>
+                        </label>
+                        <select id="style" name="style">
+                            <option value="short">🎬 短视频口播</option>
+                            <option value="shop">🛒 电商商品详情</option>
+                            <option value="post">📖 公众号推文</option>
+                            <option value="poster">📣 海报标语</option>
+                        </select>
+                    </div>
+
+                    <button class="generate-button" id="generateButton" type="submit">
+                        <span aria-hidden="true">✨</span>
+                        生成 3 个宣传版本
+                    </button>
+                </form>
+
+                <p class="privacy-note">
+                    <span aria-hidden="true">🔒</span>
+                    <span>本原型在浏览器本地组合文案，输入内容不会上传到服务器。</span>
+                </p>
+            </aside>
+
+            <section class="output-column" aria-label="文案生成结果">
+
+                <div class="panel results-panel">
+                    <div class="results-heading">
+                        <div>
+                            <span class="section-kicker">02 / OUTPUT</span>
+                            <h2>本次生成结果</h2>
+                            <p id="resultSubtitle">选择渠道后，一次给你 3 个不同版本。</p>
+                        </div>
+                        <button class="secondary-button" id="copyAllButton" type="button" disabled>
+                            复制全部
+                        </button>
+                    </div>
+
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-state-inner">
+                            <div class="empty-icon" aria-hidden="true">🌾</div>
+                            <h3>好文案，从一条真实的产品信息开始</h3>
+                            <p>
+                                在左侧填写名称、产地和特色，再选择想投放的渠道。
+                                点击“生成 3 个宣传版本”，这里就会出现可选文案。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="results-grid" id="resultList" aria-live="polite" hidden></div>
+                </div>
+
+                <section class="panel score-panel" id="scorePanel" hidden>
+                    <div class="score-top">
+                        <div class="score-number">
+                            <span id="overallScore">--</span>
+                            <small>综合分</small>
+                        </div>
+                        <div>
+                            <span class="section-kicker">03 / CHECK</span>
+                            <h2>传播效果简易评估</h2>
+                            <p>根据信息完整度、卖点表达和渠道节奏进行规则估算。</p>
+                        </div>
+                    </div>
+
+                    <div class="score-list" id="scoreList"></div>
+                    <p class="score-advice" id="scoreAdvice"></p>
+                </section>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <span>农语 AI · 水果与农产品宣传文案生成工具原型</span>
+            <span>前端模板组合演示 · 评估结果仅用于作品展示</span>
+        </footer>
+    </div>
+
+    <section class="atlas-page" id="atlasPage" aria-labelledby="atlasTitle" hidden>
+        <div class="atlas-fruit-bg" aria-hidden="true">
+            <img src="./图片文件夹/0bf4f2ffcd8c4e8fdbfcc6d34fb3d7ae.jpg" alt="">
+            <img src="./图片文件夹/3dd73e10afa8cb718b6138da110c674c.jpg" alt="">
+            <img src="./图片文件夹/4d7bdb3569c465b9ed9a080ab7e53859.jpg" alt="">
+            <img src="./图片文件夹/64daf44e3c42732927f1caf919b79f2c.jpg" alt="">
+            <img src="./图片文件夹/6acbaa8c93861e96b26d3fc3c4ea1bfa.jpg" alt="">
+            <img src="./图片文件夹/6de7923a1e2342de51f9b4219168d92d.jpg" alt="">
+            <img src="./图片文件夹/a136d26f5b8d0cd9a52d29b1b1f3bb42.jpg" alt="">
+            <img src="./图片文件夹/ad52fdef49ae4afaa9dcace1a6f7b45d.jpg" alt="">
+            <img src="./图片文件夹/b8b479618f99a63ebad28a2c0bd50886.jpg" alt="">
+            <img src="./图片文件夹/cad70024d78e5627669d2585b63096e5.jpg" alt="">
+            <img src="./图片文件夹/e300d8fe24faa933010ea7299e8b5af2.jpg" alt="">
+            <img src="./图片文件夹/e671302e02d8a538c5c9d5c840cc33fd.jpg" alt="">
+        </div>
+
+        <header class="atlas-nav">
+            <div class="welcome-brand">
+                <span class="welcome-brand-mark" aria-hidden="true">农</span>
+                <span>农语 AI · 水果档案</span>
+            </div>
+            <div class="atlas-nav-actions">
+                <button class="atlas-copy-button" id="atlasToWorkspaceButton" type="button">
+                    去写宣传词
+                </button>
+                <button class="back-cover-button atlas-back-button" id="atlasBackButton" type="button">
+                    ← 返回封面
+                </button>
+            </div>
+        </header>
+
+        <main class="atlas-shell">
+            <aside class="atlas-index">
+                <p class="atlas-kicker">FRUIT FORUM · 水果知识角</p>
+                <h1 class="atlas-title" id="atlasTitle">
+                    认识水果，<br>
+                    也认识一片风土。
+                </h1>
+                <p class="atlas-intro">
+                    选择一个水果主题，查看它的起源、历史、风味与种植方式，
+                    再读一篇简短、好懂的推荐小文。
+                </p>
+
+                <div class="fruit-menu" id="fruitMenu" aria-label="选择水果主题"></div>
+
+                <div class="forum-note">
+                    <span>今日话题</span>
+                    <p>同样是水果，为什么不同产地的风味会不一样？</p>
+                </div>
+            </aside>
+
+            <article class="fruit-detail">
+                <div class="fruit-visual">
+                    <img id="fruitHeroImage" src="./图片文件夹/cad70024d78e5627669d2585b63096e5.jpg" alt="苹果果园">
+                    <div class="fruit-emoji-visual" id="fruitEmojiVisual" hidden></div>
+                    <div class="fruit-visual-shade"></div>
+                    <span class="story-number" id="fruitStoryNumber">NO. 01</span>
+                    <div class="fruit-title-block">
+                        <p id="fruitEnglish">APPLE</p>
+                        <h2 id="fruitName">苹果</h2>
+                        <span id="fruitSubtitle">清脆、甜香，也藏着悠久的栽培历史</span>
+                    </div>
+                </div>
+
+                <div class="fruit-facts">
+                    <div>
+                        <span>主要起源</span>
+                        <strong id="fruitOrigin">中亚与天山一带</strong>
+                    </div>
+                    <div>
+                        <span>常见风味</span>
+                        <strong id="fruitFlavor">清脆、酸甜平衡</strong>
+                    </div>
+                    <div>
+                        <span>适宜环境</span>
+                        <strong id="fruitClimate">冷凉、光照充足</strong>
+                    </div>
+                </div>
+
+                <div class="story-briefs">
+                    <section class="story-brief">
+                        <span>01 / HISTORY</span>
+                        <h3>起源与历史</h3>
+                        <p id="fruitHistory"></p>
+                    </section>
+                    <section class="story-brief">
+                        <span>02 / CHARACTER</span>
+                        <h3>风味与特点</h3>
+                        <p id="fruitFeatures"></p>
+                    </section>
+                    <section class="story-brief">
+                        <span>03 / CULTIVATION</span>
+                        <h3>种植与产地</h3>
+                        <p id="fruitCultivation"></p>
+                    </section>
+                </div>
+
+                <section class="generated-story">
+                    <div class="generated-story-head">
+                        <div>
+                            <span>RECOMMENDATION · 水果推荐小文</span>
+                            <h3 id="articleTitle">一枚苹果，从果园走向餐桌</h3>
+                        </div>
+                        <button class="regenerate-button" id="regenerateArticleButton" type="button">
+                            换一种写法
+                        </button>
+                    </div>
+                    <div class="generated-article" id="generatedArticle"></div>
+                </section>
+            </article>
+        </main>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">文案已复制</div>
+
+    <script>
+        const copyForm = document.getElementById("copyForm");
+        const productNameInput = document.getElementById("productName");
+        const placeInput = document.getElementById("place");
+        const featuresInput = document.getElementById("features");
+        const styleSelect = document.getElementById("style");
+
+        const exampleButton = document.getElementById("exampleButton");
+        const resultSubtitle = document.getElementById("resultSubtitle");
+        const emptyState = document.getElementById("emptyState");
+        const resultList = document.getElementById("resultList");
+        const copyAllButton = document.getElementById("copyAllButton");
+
+        const scorePanel = document.getElementById("scorePanel");
+        const overallScore = document.getElementById("overallScore");
+        const scoreList = document.getElementById("scoreList");
+        const scoreAdvice = document.getElementById("scoreAdvice");
+
+        const toast = document.getElementById("toast");
+
+        const welcomePage = document.getElementById("welcomePage");
+        const appPage = document.getElementById("appPage");
+        const atlasPage = document.getElementById("atlasPage");
+        const enterWorkspaceButton = document.getElementById("enterWorkspaceButton");
+        const enterAtlasButton = document.getElementById("enterAtlasButton");
+        const backCoverButton = document.getElementById("backCoverButton");
+        const workspaceToAtlasButton = document.getElementById("workspaceToAtlasButton");
+        const atlasToWorkspaceButton = document.getElementById("atlasToWorkspaceButton");
+        const atlasBackButton = document.getElementById("atlasBackButton");
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        let navigationTimer;
+
+        function renderView(view, moveFocus = true) {
+            const showCover = view === "cover";
+            const showWorkspace = view === "workspace";
+            const showAtlas = view === "atlas";
+            window.clearTimeout(navigationTimer);
+
+            welcomePage.hidden = !showCover;
+            welcomePage.classList.remove("is-leaving");
+            appPage.hidden = !showWorkspace;
+            atlasPage.hidden = !showAtlas;
+            document.body.classList.toggle("cover-open", showCover);
+            window.scrollTo({ top: 0, behavior: "instant" });
+
+            if (showWorkspace && moveFocus) {
+                window.setTimeout(() => {
+                    productNameInput.focus({ preventScroll: true });
+                }, reduceMotion ? 0 : 360);
+            }
+
+            if (showAtlas && moveFocus) {
+                window.setTimeout(() => {
+                    document.querySelector(".fruit-option")?.focus({ preventScroll: true });
+                }, 80);
+            }
+
+            if (showCover && moveFocus) {
+                window.setTimeout(() => {
+                    enterWorkspaceButton.focus({ preventScroll: true });
+                }, 0);
+            }
+        }
+
+        function openView(view, { animate = true, updateUrl = true } = {}) {
+            if (updateUrl) {
+                const url = view === "cover"
+                    ? `${window.location.pathname}${window.location.search}`
+                    : `#${view}`;
+                history.pushState({ view }, "", url);
+            }
+
+            if (!animate || reduceMotion || welcomePage.hidden) {
+                renderView(view);
+                return;
+            }
+
+            welcomePage.classList.add("is-leaving");
+            window.clearTimeout(navigationTimer);
+            navigationTimer = window.setTimeout(() => {
+                renderView(view);
+            }, 300);
+        }
+
+        function openWorkspace(options = {}) {
+            openView("workspace", options);
+        }
+
+        function openAtlas(options = {}) {
+            openView("atlas", options);
+        }
+
+        function openCover(options = {}) {
+            openView("cover", options);
+        }
+
+        enterWorkspaceButton.addEventListener("click", () => openWorkspace());
+        enterAtlasButton.addEventListener("click", () => openAtlas());
+        backCoverButton.addEventListener("click", () => openCover());
+        workspaceToAtlasButton.addEventListener("click", () => openAtlas());
+        atlasToWorkspaceButton.addEventListener("click", () => openWorkspace());
+        atlasBackButton.addEventListener("click", () => openCover());
+
+        window.addEventListener("popstate", () => {
+            const view = window.location.hash === "#workspace"
+                ? "workspace"
+                : window.location.hash === "#atlas"
+                    ? "atlas"
+                    : "cover";
+            renderView(view, false);
+        });
+
+        const initialView = window.location.hash === "#workspace"
+            ? "workspace"
+            : window.location.hash === "#atlas"
+                ? "atlas"
+                : "cover";
+        renderView(initialView, false);
+
+        const fruitMenu = document.getElementById("fruitMenu");
+        const fruitHeroImage = document.getElementById("fruitHeroImage");
+        const fruitEmojiVisual = document.getElementById("fruitEmojiVisual");
+        const fruitStoryNumber = document.getElementById("fruitStoryNumber");
+        const fruitEnglish = document.getElementById("fruitEnglish");
+        const fruitName = document.getElementById("fruitName");
+        const fruitSubtitle = document.getElementById("fruitSubtitle");
+        const fruitOrigin = document.getElementById("fruitOrigin");
+        const fruitFlavor = document.getElementById("fruitFlavor");
+        const fruitClimate = document.getElementById("fruitClimate");
+        const fruitHistory = document.getElementById("fruitHistory");
+        const fruitFeatures = document.getElementById("fruitFeatures");
+        const fruitCultivation = document.getElementById("fruitCultivation");
+        const articleTitle = document.getElementById("articleTitle");
+        const generatedArticle = document.getElementById("generatedArticle");
+        const regenerateArticleButton = document.getElementById("regenerateArticleButton");
+
+        const fruitData = {
+            apple: {
+                name: "苹果",
+                english: "APPLE",
+                emoji: "🍎",
+                image: "./图片文件夹/cad70024d78e5627669d2585b63096e5.jpg",
+                subtitle: "清脆、甜香，也藏着悠久的栽培历史",
+                origin: "中亚与天山一带",
+                flavor: "清脆、酸甜平衡",
+                climate: "冷凉、光照充足",
+                history: "苹果属于蔷薇科植物，栽培历史可以追溯到中亚天山一带。古代商旅把野生苹果传播到西亚和欧洲，后来又经过长期选育，形成了今天丰富的鲜食品种。中国西北、华北和渤海湾等地，如今都是重要的优质苹果产区。",
+                features: "苹果通常果皮紧实、果肉清脆，香气清雅。不同品种在甜度、酸度、脆度和果香上差别明显，既能鲜食，也适合榨汁、烘焙和制作果干。",
+                cultivation: "苹果树喜欢冷凉干燥、光照充足的环境，较大的昼夜温差有利于糖分积累。果园需要重视修剪、疏果、病虫害管理和分期采收，才能兼顾产量与风味。",
+                articleTitle: "一枚苹果，从果园走向餐桌"
+            },
+            grape: {
+                name: "葡萄",
+                english: "GRAPE",
+                emoji: "🍇",
+                image: "./图片文件夹/b8b479618f99a63ebad28a2c0bd50886.jpg",
+                subtitle: "小小果粒里，浓缩着一整季的阳光",
+                origin: "西亚与地中海沿岸",
+                flavor: "多汁、清甜，品种香突出",
+                climate: "温暖干燥、日照充足",
+                history: "葡萄是最早被人类栽培的果树之一，起源与西亚、地中海沿岸关系密切。随着丝绸之路和海上贸易的发展，葡萄逐渐传入中国，并形成了鲜食、制干和酿造等不同用途的品种群。",
+                features: "葡萄以果穗紧凑、果粒饱满为主要特点，成熟后汁水丰富，香气因品种而异。有的清甜爽脆，有的带有玫瑰香或莓果香，适合鲜食，也能加工成葡萄干、果汁和果酒。",
+                cultivation: "葡萄园通常采用棚架或篱架栽培，需要充足日照、良好排水和合理的水肥管理。生长季要及时绑蔓、摘心和疏穗，采收时间也会直接影响甜度与香气。",
+                articleTitle: "一串葡萄里的风土与四季"
+            },
+            cherry: {
+                name: "樱桃",
+                english: "CHERRY",
+                emoji: "🍒",
+                image: "./图片文件夹/0bf4f2ffcd8c4e8fdbfcc6d34fb3d7ae.jpg",
+                subtitle: "鲜亮、娇嫩，是初夏最醒目的果香",
+                origin: "欧洲、西亚与中国传统樱桃产区",
+                flavor: "细嫩多汁、甜中带酸",
+                climate: "凉爽、昼夜温差明显",
+                history: "樱桃类果树分布广泛，欧亚地区很早就有栽培记录。中国传统樱桃常被称为小樱桃，果皮薄、成熟早；甜樱桃则在近代以后得到更多引种和推广。如今山东、辽宁、陕西等地形成了各具特色的樱桃产区。",
+                features: "樱桃果形圆润，果皮亮泽，果肉细腻多汁。成熟度合适时甜酸平衡，香气轻盈。它的采收期相对集中，也因果皮娇嫩而需要更细致的采摘、分级和冷链运输。",
+                cultivation: "樱桃树适宜在冷凉、通风良好的地区生长。果园要关注授粉配置、花期低温、裂果和鸟害等问题，成熟季往往需要分批采摘，以保持果实的完整和新鲜。",
+                articleTitle: "樱桃红了，初夏也到了"
+            },
+            peach: {
+                name: "桃子",
+                english: "PEACH",
+                emoji: "🍑",
+                image: "./图片文件夹/e671302e02d8a538c5c9d5c840cc33fd.jpg",
+                subtitle: "柔软多汁，带着温暖而甜润的果香",
+                origin: "中国黄河流域与长江流域",
+                flavor: "柔软多汁、香甜浓郁",
+                climate: "温暖、光照充足",
+                history: "桃原产中国，在古代典籍和民间文化中都有丰富记载。经过长期栽培和品种选育，逐渐形成毛桃、油桃、蟠桃、黄桃等多个类型，并从中国传播到亚洲及世界各地。",
+                features: "桃子以香气浓、汁水足见长，成熟后肉质柔软，甜味中常带一点清新酸感。不同品种在果形、绒毛、果肉颜色和离核特点上各具差异，适合鲜食、罐头和果干加工。",
+                cultivation: "桃树喜光、怕涝，适宜在排水良好的土壤中栽培。果园通常通过修剪保持通风透光，并根据品种成熟期进行疏果、套袋和分批采收。",
+                articleTitle: "一颗桃子，藏着夏日的软与甜"
+            },
+            banana: {
+                name: "香蕉",
+                english: "BANANA",
+                emoji: "🍌",
+                image: "./图片文件夹/64daf44e3c42732927f1caf919b79f2c.jpg",
+                subtitle: "热带阳光孕育出的软糯与清甜",
+                origin: "东南亚与热带亚洲",
+                flavor: "软糯香甜、香气柔和",
+                climate: "高温多湿、避风",
+                history: "香蕉起源于东南亚及周边热带地区，是人类较早栽培和利用的水果之一。随着贸易发展，香蕉从亚洲传播到非洲、美洲和世界各地的热带产区，逐渐成为常见的日常水果。",
+                features: "香蕉果肉柔软细腻，成熟后甜香明显，食用方便。果皮颜色会随着成熟度由绿变黄，不同阶段的硬度、香气和甜度都有变化，也常被加工成香蕉片、果泥和烘焙原料。",
+                cultivation: "香蕉植株喜高温多湿，对低温和强风较敏感。生产过程中需要关注水分供应、培土防风、养分管理以及采收后的运输温度。",
+                articleTitle: "一串香蕉，带着热带的阳光"
+            },
+            watermelon: {
+                name: "西瓜",
+                english: "WATERMELON",
+                emoji: "🍉",
+                image: "./图片文件夹/e300d8fe24faa933010ea7299e8b5af2.jpg",
+                subtitle: "清甜多汁，是夏日餐桌上的清凉主角",
+                origin: "非洲南部",
+                flavor: "汁水丰富、清甜爽口",
+                climate: "温暖、昼热夜凉",
+                history: "西瓜原产非洲南部，早期果实与今天的甜西瓜差别很大。经过长期引种和选育，西瓜逐渐传播到地中海、亚洲和美洲，并形成了大果型、小果型、黄瓤和无籽等丰富类型。",
+                features: "西瓜以含水量高、清甜爽口著称，成熟果肉通常呈红色或黄色。果肉细腻、籽粒较少、瓜香自然，是夏季鲜食的重要水果，也适合制作果汁和冷饮。",
+                cultivation: "西瓜适合在温暖、日照充足且昼夜温差较明显的地区栽培。种植时需要轮作、整枝和合理控制水分，成熟前减少过量灌溉，有助于提升甜度和风味。",
+                articleTitle: "夏日的清凉，从一只西瓜开始"
+            },
+            pear: {
+                name: "梨",
+                english: "PEAR",
+                emoji: "🍐",
+                image: "./图片文件夹/ffae2924dfe5996611b3e7c776a6f0c5.jpg",
+                subtitle: "清润多汁，带着含蓄而干净的甜",
+                origin: "中国及欧亚地区",
+                flavor: "清甜多汁、果肉细腻",
+                climate: "温带、光照充足",
+                history: "梨的栽培历史十分悠久，中国是世界上重要的梨起源地之一。经过长期自然选择和人工培育，形成了白梨、沙梨、秋子梨和西洋梨等多种类型，在不同气候区都有适生品种。",
+                features: "梨果肉细腻、汁水丰富，香气清雅，甜味通常较为柔和。不同品种在果形、果皮颜色、脆度和后熟特性上差异明显，适合鲜食，也常用于炖煮和加工。",
+                cultivation: "梨树适应范围较广，但仍需要充足光照和良好排水。果园常通过整形修剪、授粉配置、疏花疏果和采后冷藏，提升果实品质并延长供应期。",
+                articleTitle: "一只梨，清甜里有季节的耐心"
+            },
+            orange: {
+                name: "橙子",
+                english: "ORANGE",
+                emoji: "🍊",
+                image: "./图片文件夹/824845f26b900a59a171c61ac8c75058.jpg",
+                subtitle: "明快的橙香，是冬日里的一束暖光",
+                origin: "中国南方及亚洲柑橘产区",
+                flavor: "酸甜多汁、香气明亮",
+                climate: "温暖湿润、光照充足",
+                history: "橙子属于柑橘类水果，起源与亚洲柑橘栽培体系密切相关。甜橙经过长期传播和选育，逐渐形成脐橙、血橙、冰糖橙等不同类型，并在中国南方以及世界多个柑橘产区广泛种植。",
+                features: "橙子果肉多汁，酸甜比例均衡，果皮和果汁都带有清新香气。它既适合直接鲜食，也常用于榨汁、烘焙和甜点制作，是冬季很受欢迎的水果。",
+                cultivation: "柑橘类果树喜欢温暖、湿润和光照充足的环境。果园需要做好土壤排水、水肥管理和冬季防寒，同时根据品种成熟期安排采收。",
+                articleTitle: "一只橙子，把冬日照得明亮"
+            },
+            tangerine: {
+                name: "橘子",
+                english: "TANGERINE",
+                emoji: "🍊",
+                image: "./图片文件夹/502d54389f20c192a76578f58f49a42b.jpg",
+                subtitle: "皮薄易剥，酸甜香气适合分享",
+                origin: "中国南方柑橘原产区",
+                flavor: "酸甜清新、果香浓郁",
+                climate: "温暖、湿润、避寒风",
+                history: "橘子与橙子同属柑橘类水果，中国南方拥有悠久的柑橘栽培历史。古代已有关于橘类果树的记载，不同地区在长期栽培中形成了沙糖橘、蜜橘等地方品种。",
+                features: "橘子通常果皮较薄、容易剥开，果肉柔软多汁，酸甜香气十分鲜明。它适合作为家庭日常水果，也常被用于果酱、果茶和节庆礼品。",
+                cultivation: "橘树适合在温暖湿润且排水良好的环境中生长，需要充足日照和稳定水分。采摘时应轻拿轻放，避免果皮受伤，以延长保鲜时间。",
+                articleTitle: "一颗橘子，酸甜里藏着南方风土"
+            },
+            strawberry: {
+                name: "草莓",
+                english: "STRAWBERRY",
+                emoji: "🍓",
+                image: "./图片文件夹/6d6be825598aedb16cdad6e66d54c39b.jpg",
+                subtitle: "鲜红娇嫩，是早春最受欢迎的果香",
+                origin: "美洲草莓种质与欧洲育种",
+                flavor: "柔软多汁、甜酸鲜明",
+                climate: "凉爽、光照柔和",
+                history: "现代栽培草莓主要由美洲草莓种质经欧洲育种而来，后来逐渐传播到世界各地。随着设施栽培和品种改良的发展，草莓成为许多地区冬春季的重要鲜食水果。",
+                features: "草莓果肉柔软、汁水充足，香气甜润而带轻微酸感。果实外观鲜艳，但表皮娇嫩，采收和运输都需要控制温度，避免挤压和损伤。",
+                cultivation: "草莓适合在凉爽、光照良好的环境中栽培，常采用大棚或高垄种植。生产过程中需要控制湿度、保持通风，并在果实成熟后进行分批采摘。",
+                articleTitle: "一颗草莓，把春天带进果篮"
+            }
+        };
+
+        let activeFruitKey = "apple";
+        let articleVersion = 0;
+
+        const articleOpenings = [
+            (fruit) => `如果要用一种味道认识${fruit.name}，不妨从它的历史、风土和日常吃法慢慢说起。`,
+            (fruit) => `${fruit.name}看似熟悉，背后却连接着长长的栽培历史、不同产地的风土条件，以及人们对好滋味的持续选择。`,
+            (fruit) => `在果篮里，${fruit.name}是很容易被注意到的存在；而在果园里，它更像是一份需要季节、气候和耐心共同完成的作品。`
+        ];
+
+        const articleEndings = [
+            (fruit) => `挑选${fruit.name}时，可以从香气、果皮完整度和成熟度入手。尝到合口的甜酸比例，也就更接近它真正想表达的风味。`,
+            (fruit) => `好水果不只是一种食材，也是一张产地名片。下一次品尝${fruit.name}时，不妨留意它的香气、口感和来处，也许会有新的发现。`,
+            (fruit) => `从果园管理到采后运输，每一份${fruit.name}都要经过许多环节才来到餐桌。了解这些过程，也会让日常的一口甜更有分量。`
+        ];
+
+        function renderFruitMenu() {
+            fruitMenu.innerHTML = Object.entries(fruitData)
+                .map(([key, fruit], index) => {
+                    const thumb = fruit.image
+                        ? `<img src="${fruit.image}" alt="">`
+                        : fruit.emoji;
+                    return `
+                        <button class="fruit-option" type="button" data-fruit="${key}">
+                            <span class="fruit-option-thumb" aria-hidden="true">${thumb}</span>
+                            <span class="fruit-option-name">${String(index + 1).padStart(2, "0")} ${fruit.name}</span>
+                        </button>
+                    `;
+                })
+                .join("");
+
+            fruitMenu.querySelectorAll(".fruit-option").forEach((button) => {
+                button.addEventListener("click", () => {
+                    selectFruit(button.dataset.fruit);
+                });
+            });
+        }
+
+        function selectFruit(key) {
+            const fruit = fruitData[key];
+            if (!fruit) {
+                return;
+            }
+
+            activeFruitKey = key;
+            articleVersion = 0;
+
+            fruitMenu.querySelectorAll(".fruit-option").forEach((button) => {
+                button.classList.toggle("active", button.dataset.fruit === key);
+            });
+
+            const fruitIndex = Object.keys(fruitData).indexOf(key) + 1;
+            fruitStoryNumber.textContent = `NO. ${String(fruitIndex).padStart(2, "0")}`;
+            fruitEnglish.textContent = fruit.english;
+            fruitName.textContent = fruit.name;
+            fruitSubtitle.textContent = fruit.subtitle;
+            fruitOrigin.textContent = fruit.origin;
+            fruitFlavor.textContent = fruit.flavor;
+            fruitClimate.textContent = fruit.climate;
+            fruitHistory.textContent = fruit.history;
+            fruitFeatures.textContent = fruit.features;
+            fruitCultivation.textContent = fruit.cultivation;
+            articleTitle.textContent = fruit.articleTitle;
+
+            if (fruit.image) {
+                fruitHeroImage.src = fruit.image;
+                fruitHeroImage.alt = `${fruit.name}水果照片`;
+                fruitHeroImage.hidden = false;
+                fruitEmojiVisual.hidden = true;
+            } else {
+                fruitHeroImage.hidden = true;
+                fruitEmojiVisual.hidden = false;
+                fruitEmojiVisual.textContent = fruit.emoji;
+            }
+
+            renderArticle();
+        }
+
+        function renderArticle() {
+            const fruit = fruitData[activeFruitKey];
+            const opening = articleOpenings[articleVersion % articleOpenings.length](fruit);
+            const ending = articleEndings[articleVersion % articleEndings.length](fruit);
+            const paragraphs = [
+                opening,
+                fruit.history,
+                fruit.features,
+                fruit.cultivation,
+                ending
+            ];
+
+            generatedArticle.replaceChildren(
+                ...paragraphs.map((text) => {
+                    const paragraph = document.createElement("p");
+                    paragraph.textContent = text;
+                    return paragraph;
+                })
+            );
+        }
+
+        regenerateArticleButton.addEventListener("click", () => {
+            articleVersion = (articleVersion + 1) % articleOpenings.length;
+            renderArticle();
+        });
+
+        renderFruitMenu();
+        selectFruit("apple");
+
+        let currentCopies = [];
+        let currentStyle = "short";
+
+        const templates = {
+            short: [
+                (data) =>
+                    `家人们，今天带大家看看来自${data.place}的${data.name}！${data.features}。从田间到餐桌，新鲜和好味道都不绕路。`,
+
+                (data) =>
+                    `先别划走！这箱来自${data.place}的${data.name}，主打一个“${data.features}”。好产地、好风味，吃一口就知道。`,
+
+                (data) =>
+                    `${data.place}的${data.name}来啦！${data.features}，每一口都是产地风味。想吃新鲜好物，认准这一口。`,
+
+                (data) =>
+                    `一口${data.name}，尝到${data.place}的好风土。${data.features}，自己吃解馋，送亲友也拿得出手。`,
+
+                (data) =>
+                    `今天的原产地好物推荐：${data.place}${data.name}。${data.features}，把田间的鲜甜直接带到你的餐桌。`
+            ],
+
+            shop: [
+                (data) =>
+                    `【${data.place}原产｜${data.name}】\n${data.featureBullets}\n\n从产地到餐桌，层层把关。自然好物，值得慢慢品尝。`,
+
+                (data) =>
+                    `🌿 ${data.name}\n产地：${data.place}\n亮点：${data.features}\n\n原产地甄选，保留食材本真风味。无论是日常食用还是节日送礼，都把一份地道心意带回家。`,
+
+                (data) =>
+                    `${data.name}｜${data.place}产地好物\n\n✅ 产地直供\n${data.featureBullets}\n\n用心挑选每一份好物，让新鲜不只停留在产地，也让品质走进每一餐。`,
+
+                (data) =>
+                    `为什么选择${data.name}？\n\n① 来自${data.place}，产地风味更有辨识度\n② ${data.features}\n③ 原产地好物，送人自用都合适\n\n把自然馈赠装进包裹，把地道风味送到餐桌。`,
+
+                (data) =>
+                    `【今日好物】${data.name}\n\n产自${data.place}，${data.features}。\n${data.featureBullets}\n\n不追求花哨，只把原产地的实在好味道送到你手里。`
+            ],
+
+            post: [
+                (data) =>
+                    `在${data.place}的土地上，四季轮转，也酝酿出一份属于${data.name}的好味道。\n\n${data.features}——这不只是产品特点，更是当地农人日复一日的用心。从种植、采收到装箱，每一个环节，都为了让这份产地风味更完整地抵达餐桌。\n\n好农产品值得被看见，也值得被认真品尝。`,
+
+                (data) =>
+                    `好农产品，为什么值得被更多人看见？\n\n因为它连接着土地、农人和一日三餐。来自${data.place}的${data.name}，以“${data.features}”留下自己的风味名片。\n\n当我们选择一份原产地好物，也是在用一次日常购买，回应土地里的认真与坚持。`,
+
+                (data) =>
+                    `从${data.place}出发，${data.name}带着土地的气息来到餐桌。\n\n${data.features}，让这份好物有了自己的辨识度。它不需要复杂的修饰，因为真实的风味，本身就是最有说服力的表达。\n\n愿每一份认真种出来的好物，都能遇见懂得欣赏它的人。`,
+
+                (data) =>
+                    `一份好物，背后藏着土地的答案。\n\n${data.place}的${data.name}，以“${data.features}”成为许多人记住当地风味的方式。从田间到餐桌，变化的是距离，不变的是农人对品质的坚持。\n\n今天，把这份来自产地的心意，分享给你。`,
+
+                (data) =>
+                    `我们常说“一方水土养一方风物”。\n\n${data.place}的水土，孕育出独具特色的${data.name}。${data.features}，简单几个字，背后却是选种、管护、采收等许多环节的共同积累。\n\n让产地好物走出田间，让更多人的餐桌多一份自然本味。`
+            ],
+
+            poster: [
+                (data) =>
+                    `${data.place}${data.name}\n${data.features}\n一口好风味，来自好产地。`,
+
+                (data) =>
+                    `好产地，藏不住好味道\n${data.place} · ${data.name}\n${data.features}`,
+
+                (data) =>
+                    `${data.name}\n${data.features}\n从${data.place}出发，把新鲜带回家。`,
+
+                (data) =>
+                    `认准${data.place}${data.name}\n${data.features}\n原产地好物，一口就记住。`,
+
+                (data) =>
+                    `${data.place}的风土\n${data.name}的鲜甜\n${data.features}\n趁新鲜，尝一口。`
+            ]
+        };
+
+        const styleLabels = {
+            short: "短视频口播",
+            shop: "电商商品详情",
+            post: "公众号推文",
+            poster: "海报标语"
+        };
+
+        function splitFeatures(text) {
+            return text
+                .split(/[、，,；;\/]+/)
+                .map((item) => item.trim())
+                .filter(Boolean);
+        }
+
+        function cleanEnding(text) {
+            return text.replace(/[。！？!?；;，,、\s]+$/g, "");
+        }
+
+        function shuffle(array) {
+            const copiedArray = [...array];
+
+            for (let i = copiedArray.length - 1; i > 0; i -= 1) {
+                const randomIndex = Math.floor(Math.random() * (i + 1));
+                [copiedArray[i], copiedArray[randomIndex]] = [
+                    copiedArray[randomIndex],
+                    copiedArray[i]
+                ];
+            }
+
+            return copiedArray;
+        }
+
+        let toastTimer;
+        function showToast(message) {
+            clearTimeout(toastTimer);
+            toast.textContent = message;
+            toast.classList.add("show");
+
+            toastTimer = setTimeout(() => {
+                toast.classList.remove("show");
+            }, 1600);
+        }
+
+        function readFormData() {
+            const name = productNameInput.value.trim();
+            const place = placeInput.value.trim();
+            const features = cleanEnding(featuresInput.value.trim());
+            const featureItems = splitFeatures(features);
+
+            return {
+                name,
+                place,
+                features,
+                featureItems,
+
+                featureBullets: featureItems
+                    .map((item) => `✅ ${item}`)
+                    .join("\n")
+            };
+        }
+
+        function generateCopy(event) {
+            event.preventDefault();
+
+            if (
+                productNameInput.value.trim() === "" ||
+                placeInput.value.trim() === "" ||
+                featuresInput.value.trim() === ""
+            ) {
+                showToast("请先填写产品名称、产地和特色");
+                return;
+            }
+
+            const data = readFormData();
+            currentStyle = styleSelect.value;
+
+            const chosenTemplates = shuffle(templates[currentStyle]).slice(0, 3);
+            currentCopies = chosenTemplates.map((templateFunction) =>
+                templateFunction(data)
+            );
+
+            renderResults(currentStyle);
+            renderEvaluation(data);
+
+            resultSubtitle.textContent =
+                `当前渠道：${styleLabels[currentStyle]} · 再点一次按钮可换一批`;
+        }
+
+        function renderResults(style) {
+            emptyState.hidden = true;
+            resultList.hidden = false;
+            copyAllButton.disabled = false;
+
+            resultList.innerHTML = currentCopies
+                .map(
+                    (_, index) => `
+                        <article class="copy-card">
+                            <div class="copy-card-head">
+                                <span class="version-tag">${styleLabels[style]} · 版本 ${index + 1}</span>
+                                <button class="copy-button" type="button" data-index="${index}">
+                                    复制
+                                </button>
+                            </div>
+                            <p class="copy-text"></p>
+                        </article>
+                    `
+                )
+                .join("");
+
+            const copyTextElements = resultList.querySelectorAll(".copy-text");
+            currentCopies.forEach((copy, index) => {
+                copyTextElements[index].textContent = copy;
+            });
+
+            const copyButtons = resultList.querySelectorAll(".copy-button");
+            copyButtons.forEach((button) => {
+                button.addEventListener("click", () => {
+                    const copyIndex = Number(button.dataset.index);
+                    copyText(currentCopies[copyIndex], button);
+                });
+            });
+        }
+
+        async function copyText(text, clickedButton = null) {
+            try {
+                await navigator.clipboard.writeText(text);
+            } catch (error) {
+                const temporaryInput = document.createElement("textarea");
+                temporaryInput.value = text;
+                temporaryInput.style.position = "fixed";
+                temporaryInput.style.left = "-9999px";
+                document.body.appendChild(temporaryInput);
+                temporaryInput.select();
+                document.execCommand("copy");
+                temporaryInput.remove();
+            }
+
+            showToast("文案已复制，可以直接粘贴使用");
+
+            if (clickedButton) {
+                const originalText = clickedButton.textContent;
+                clickedButton.textContent = "已复制 ✓";
+                clickedButton.classList.add("copied");
+
+                setTimeout(() => {
+                    clickedButton.textContent = originalText;
+                    clickedButton.classList.remove("copied");
+                }, 1300);
+            }
+        }
+
+        function renderEvaluation(data) {
+            scorePanel.hidden = false;
+
+            const averageLength =
+                currentCopies.reduce((sum, copy) => sum + copy.length, 0) /
+                currentCopies.length;
+
+            const informationScore = Math.min(
+                100,
+                82 + data.featureItems.length * 5 + (data.place.length >= 4 ? 3 : 0)
+            );
+
+            const highlightScore = Math.min(
+                100,
+                76 + data.featureItems.length * 7 + (data.name.length >= 4 ? 4 : 0)
+            );
+
+            const idealLength = {
+                short: 90,
+                shop: 180,
+                post: 260,
+                poster: 45
+            }[currentStyle];
+
+            const rhythmScore = Math.max(
+                74,
+                Math.min(
+                    98,
+                    Math.round(100 - Math.abs(averageLength - idealLength) / 12)
+                )
+            );
+
+            const scoreItems = [
+                {
+                    label: "信息完整度",
+                    value: informationScore,
+                    note: `${data.featureItems.length} 个产品卖点`
+                },
+                {
+                    label: "亮点表达",
+                    value: highlightScore,
+                    note: data.featureItems.length >= 2 ? "卖点分层清晰" : "可再补充 1 个卖点"
+                },
+                {
+                    label: "渠道节奏",
+                    value: rhythmScore,
+                    note: `平均 ${Math.round(averageLength)} 字`
+                }
+            ];
+
+            const totalScore = Math.round(
+                (informationScore + highlightScore + rhythmScore) / 3
+            );
+            overallScore.textContent = totalScore;
+
+            scoreList.innerHTML = scoreItems
+                .map(
+                    (item) => `
+                        <div class="score-item">
+                            <div class="score-label">
+                                <span>${item.label}</span>
+                                <strong>${item.value}</strong>
+                            </div>
+                            <div class="score-track">
+                                <div class="score-fill" style="width: ${item.value}%"></div>
+                            </div>
+                            <p class="score-note">${item.note}</p>
+                        </div>
+                    `
+                )
+                .join("");
+
+            if (data.featureItems.length < 2) {
+                scoreAdvice.textContent =
+                    "💡 建议把产品特色拆成 2—3 个短卖点，例如“脆甜多汁、生态种植、产地直发”，信息会更具体。";
+            } else if (currentStyle === "poster" && averageLength > 120) {
+                scoreAdvice.textContent =
+                    "💡 海报文案建议再短一些，优先保留产品名、一个核心卖点和一句记忆口号。";
+            } else {
+                scoreAdvice.textContent =
+                    "💡 当前信息已经比较完整。正式发布前，可以再加入真实种植故事、采摘时间或口感细节，让内容更可信。";
+            }
+        }
+
+        copyForm.addEventListener("submit", generateCopy);
+
+        copyAllButton.addEventListener("click", () => {
+            if (currentCopies.length === 0) {
+                return;
+            }
+
+            copyText(currentCopies.join("\n\n---\n\n"));
+        });
+
+        exampleButton.addEventListener("click", () => {
+            productNameInput.value = "阳光玫瑰葡萄";
+            placeInput.value = "云南建水";
+            featuresInput.value = "果粒饱满、清甜多汁、产地直发";
+            styleSelect.value = "short";
+            productNameInput.focus();
+        });
+    </script>
+</body>
+</html>
